@@ -1,49 +1,84 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using UnityEngine;
 
 public class EdgeFlipping : MonoBehaviour
 {
     public Material material;
-    public List<List<Vector3>> points;
+    public List<Vector3> randomPoints;
+    //public List<List<Vector3>> points;
+    public List<Triangle> triangles;
 
     void Start()
-    {      
-        /**
-         * Note : On pourrait transformer ca en List de Triangle
-         * où Triangle correspond à :
-         *
-         * struct Triangle {
-         *    List<Vector3> points;
-         * }
-         *
-         */
-
+    {
         // List of List of points in clockwise required (TODO : not required)
-        points = new List<List<Vector3>> ()
-        {
-            new List<Vector3>()
-            {
-                new Vector3(-4, 0, 4),
-                new Vector3(-3, 0, 6),
-                new Vector3(0, 0, 0)
-            },
-            new List<Vector3>()
-            {
-                new Vector3(0, 0, 0),
-                new Vector3(-3, 0, 6),
-                new Vector3(3, 0, 6)
-            },
-            new List<Vector3>()
-            {
-                new Vector3(0, 0, 0),
-                new Vector3(3, 0, 6),
-                new Vector3(4, 0, 4)
-            }
-        };
+        triangles = new List<Triangle>();
 
-        GenerateMesh(points);
+        Triangle tri1 = new Triangle(
+            new Vector3(-4, 4, 0),
+            new Vector3(-3, 6, 0),
+            new Vector3(0, 0, 0));
+
+        Triangle tri2 = new Triangle(
+            new Vector3(0, 0, 0),
+            new Vector3(-3, 6, 0),
+            new Vector3(3, 6, 0));
+
+        Triangle tri3 = new Triangle(
+            new Vector3(0, 0, 0),
+            new Vector3(3, 6, 0),
+            new Vector3(4, 4, 0));
+
+        triangles.Add(tri1);
+        triangles.Add(tri2);
+        triangles.Add(tri3);
+
+        GenerateMesh(triangles);
+        //GenerateMesh(triangles);
+    }
+
+    // adapted function to generate one mesh per triangle without other vertices
+    void GenerateMesh(List<Triangle> triangles)
+    {
+        Debug.Log(triangles.Count);
+
+        for (int i = 0; i < triangles.Count; i++)
+        {
+            // Create a triangle game object
+            GameObject thisTriangle = new GameObject("Triangle " + i);
+            //float height = triangles[i].vertices[1].y;
+
+            // Convert vertices to array for mesh
+            var triangle = triangles[i];
+            var normals = new List<Vector3>();
+            var indices = new List<int>();
+
+            for (int j = 0; j < triangle.vertices.Length; j++) {
+                normals.Add(Vector3.back);
+            }
+
+            for (int k = 0; k < triangle.vertices.Length; k++) {
+                indices.Add(k);
+            }
+
+            // Create and apply the mesh
+            MeshFilter mf = thisTriangle.AddComponent<MeshFilter>();
+
+            Mesh mesh = new Mesh();
+            mf.mesh = mesh;
+
+            mesh.SetVertices(triangle.vertices.ToList());
+            mesh.SetNormals(normals);
+            mesh.SetTriangles(indices, 0);
+
+            mesh.RecalculateBounds();
+            mesh.RecalculateNormals();
+
+            Renderer rend = thisTriangle.AddComponent<MeshRenderer>();
+            rend.material = material;
+        }
     }
 
     // https://forum.unity.com/threads/building-mesh-from-polygon.484305/
