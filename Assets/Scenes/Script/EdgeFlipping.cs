@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class EdgeFlipping : MonoBehaviour
 {
@@ -11,12 +12,22 @@ public class EdgeFlipping : MonoBehaviour
     //public List<List<Vector3>> points;
     public List<Triangle> triangles;
 
+    public const int verticesAmount = 10;
+
+    private Camera _camera;
+    private const int cameraZoffset = 10; 
+    private Event _event;
+
     void Start()
     {
+        _camera = Camera.main;
+        _camera.orthographic = true;
+        _event = new Event();
+
         Triangle superTriangle = new Triangle(
-            new Vector3(-20, -20, 0),
+            new Vector3(-40, -20, 0),
             new Vector3(0, 40, 0),
-            new Vector3(20, -20, 0));
+            new Vector3(40, -20, 0));
 
         superTriangle.createMesh("Super Triangle", material);
 
@@ -24,9 +35,41 @@ public class EdgeFlipping : MonoBehaviour
         drawSomeTriangles();
     }
 
+    private void OnGUI()
+    {
+        _event = Event.current;
+
+        if (_event.button == 0 && _event.isMouse) {
+            Vector3 uperLeftCorner = new Vector3();
+            uperLeftCorner = _camera.ScreenToWorldPoint(new Vector3(
+                _event.mousePosition.x,
+                _event.mousePosition.y,
+                cameraZoffset) // -10.0f if bugs
+            );
+            Debug.Log(uperLeftCorner);
+        }
+        
+    }
+
     void generateRandomVertices()
     {
-
+        Vector3 uperLeftCorner = _camera.ScreenToWorldPoint(new Vector3(
+            0,
+            0,
+            cameraZoffset)); // -10.0f if bugs
+        Vector3 lowerRightCorner = _camera.ScreenToWorldPoint(new Vector3(
+            Screen.width,
+            Screen.height,
+            cameraZoffset)); // -10.0f if bugs
+        Debug.Log(" uperLeftCorner : " + uperLeftCorner + " lowerRightCorner : " + lowerRightCorner);
+        
+        for (int i = 0; i < verticesAmount; i++) {
+            GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sphere.transform.position = new Vector3(
+                Random.Range(uperLeftCorner.x, lowerRightCorner.x),
+                Random.Range(uperLeftCorner.y, lowerRightCorner.y),
+                0);
+        }
     }
 
     void drawSomeTriangles()
