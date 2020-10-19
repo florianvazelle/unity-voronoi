@@ -7,11 +7,29 @@ using UnityEngine;
 public class EdgeFlipping : MonoBehaviour
 {
     public Material material;
-    public List<Vector3> randomPoints;
+    public List<Vector3> randomVertices;
     //public List<List<Vector3>> points;
     public List<Triangle> triangles;
 
     void Start()
+    {
+        Triangle superTriangle = new Triangle(
+            new Vector3(-20, -20, 0),
+            new Vector3(0, 40, 0),
+            new Vector3(20, -20, 0));
+
+        superTriangle.createMesh("Super Triangle", material);
+
+        generateRandomVertices();
+        drawSomeTriangles();
+    }
+
+    void generateRandomVertices()
+    {
+
+    }
+
+    void drawSomeTriangles()
     {
         // List of List of points in clockwise required (TODO : not required)
         triangles = new List<Triangle>();
@@ -35,10 +53,9 @@ public class EdgeFlipping : MonoBehaviour
         triangles.Add(tri2);
         triangles.Add(tri3);
 
-        GenerateMesh(triangles);
-        //GenerateMesh(triangles);
-    }
 
+        GenerateMesh(triangles);
+    }
     // adapted function to generate one mesh per triangle without other vertices
     void GenerateMesh(List<Triangle> triangles)
     {
