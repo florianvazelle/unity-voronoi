@@ -150,7 +150,87 @@ public class ConvexHull {
         return r < 0 ? r + b : r;
     }
 
+    class CompareYCoordinates : IComparer<Vector2>  {
+        public int Compare(Vector2 lhs, Vector2 rhs) { 
+            if (lhs[1] != rhs[1])
+                return lhs[1].CompareTo(rhs[1]);
+
+            /* Otherwise, fall back to comparing by x coordinates. */
+            return lhs[0].CompareTo(rhs[0]);
+        } 
+    }
+
+    class CompareByAngle : IComparer<Vector2>  {
+        Vector2 origin;
+
+        public CompareByAngle(Vector2 origin) {
+            this.origin = origin;
+        }
+
+        public int Compare(Vector2 lhs, Vector2 rhs) { 
+            Vector2 one = lhs - origin;
+            Vector2 two = rhs - origin;
+
+            float normOne = one.magnitude;
+            float normTwo = two.magnitude;
+            float negCosOne = -one[0] / normOne;
+            float negCosTwo = -two[0] / normTwo;
+
+            if (negCosOne != negCosTwo) return negCosOne.CompareTo(negCosTwo);
+
+            return normOne.CompareTo(normTwo);
+        } 
+    }
+
+    public static void sortByAngle2(ref List<Vector2> S, Vector2 center) {
+        CompareByAngle gg = new CompareByAngle(center);
+        S.Sort(gg); 
+    }
+
     public static void GrahamScan(List<Vector2> S, ref List<Vector2> P) {
+        if (S.Count < 3) {
+            P = S;
+            return;
+        }
+        
+        List<Vector2> tmp = new List<Vector2>(S);
+        tmp.Sort(new CompareYCoordinates()); 
+        
+        int minY = S.FindIndex(x => x == tmp[0]);
+        int next = minY + 1;
+
+        List<Vector2> points = new List<Vector2>();
+        for(int i = 0; i < minY; i++)   {
+            points.Add(S[i]);
+        }   
+
+        for(int i = next; i < S.Count; i++) {
+            points.Add(S[i]);
+        }        
+
+        points.Sort(new CompareByAngle(S[minY])); 
+
+        points.Add(S[minY]);
+
+        List<Vector2> result = new List<Vector2>();
+        result.Add(S[minY]);
+        result.Add(points[0]);
+
+        for (int i = 1; i < points.Count; ++i) {
+            while (true) {
+                Vector2 last = result[result.Count - 1] - result[result.Count - 2];
+                Vector2 curr = points[i] - result[result.Count - 1];
+
+                if (last[0] * curr[1] - last[1] * curr[0] >= 0) break;
+                result.RemoveAt(result.Count - 1);
+            }
+            result.Add(points[i]);
+        }
+        result.RemoveAt(result.Count - 1);
+        P = result;
+    }
+
+    public static void OldGrahamScan(List<Vector2> S, ref List<Vector2> P) {
         P = S;
         ConvexHull.sortByAngle(ref P, ConvexHull.getBarycenter(S));  // we sort all points compared to barycenter
 
