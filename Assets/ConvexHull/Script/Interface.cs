@@ -11,6 +11,7 @@ public class Interface: MonoBehaviour
     private Rect windowRect = new Rect(0, 0, 250, 250);
     private List<Vector3> pointsCloud3D;
     private int verticesAmount = 10;
+    private long elapsedMs = -1;
 
     void Start() {
         pointsCloud3D = new List<Vector3>();
@@ -24,6 +25,7 @@ public class Interface: MonoBehaviour
         verticesAmount = RGUI.Field(verticesAmount, "Number of Points");
 
         if (GUILayout.Button("Generate 2D Points Cloud")) {
+            elapsedMs = -1;
             ResetScene();
             pointsCloud3D = GenerateRandomVertices(verticesAmount);
             GeneratePoints(pointPrefab, new List<List<Vector3>> () { pointsCloud3D });
@@ -37,15 +39,28 @@ public class Interface: MonoBehaviour
                 pointsCloud3D = UpdateVertices();
                 ResetMesh();
                 List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
+                
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 ConvexHull.JarvisMarch(pointsCloud2D, ref mesh2D);
+                watch.Stop();
+                elapsedMs = watch.ElapsedMilliseconds;
+
                 GenerateMeshIndirect(mesh2D);
             }
             else if (GUILayout.Button("GrahamScan")) {
                 pointsCloud3D = UpdateVertices();
                 ResetMesh();
                 List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
+
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 ConvexHull.GrahamScan(pointsCloud2D, ref mesh2D);
+                elapsedMs = watch.ElapsedMilliseconds;
+
                 GenerateMeshIndirect(mesh2D);
+            }
+
+            if (elapsedMs != -1) {
+                GUILayout.Label("In " + elapsedMs + " milliseconds");
             }
         }
     }
@@ -137,10 +152,6 @@ public class Interface: MonoBehaviour
     static public void GenerateMeshIndirect(List<Vector2> points2D) {
         // Sort in clockwise
         SortInClockWise(ref points2D);
-
-        for(int i = 0; i < points2D.Count; i++) {
-            Debug.Log(points2D[i]);
-        }
 
         List<int> indices = new List<int>();
         Vector2 center = ConvexHull.GetBarycenter(points2D);
