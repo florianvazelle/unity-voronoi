@@ -16,9 +16,9 @@ public class ConvexHull {
     
     /**
     * getLeftmostPoint
-    * Return the left most point of a set of point
+    * Return index of the left most point of a set of point, and this point is store in the out parameter `leftmostPoint`
     */
-    public static void getLeftmostPoint(List<Vector2> S, ref Vector2 leftmostPoint) {
+    public static int getLeftmostPoint(List<Vector2> S, ref Vector2 leftmostPoint) {
         int imin = 0;
         Vector2 pmin = S[imin];
         for (int i = 1; i < S.Count; i++) {
@@ -30,6 +30,26 @@ public class ConvexHull {
         }
 
         leftmostPoint = S[imin];
+        return imin;
+    }
+
+    /**
+    * getBottommostPoint
+    * Return index of the bottom most point of a set of point, and this point is store in the out parameter `bottommostPoint`
+    */
+    public static int getBottommostPoint(List<Vector2> S, ref Vector2 bottommostPoint) {
+        int imin = 0;
+        Vector2 pmin = S[imin];
+        for (int i = 1; i < S.Count; i++) {
+            Vector2 p = S[i];
+            if (p.y < pmin.y || (p.y == pmin.y && p.x < pmin.x)) {
+                imin = i;
+                pmin = p;
+            }
+        }
+
+        bottommostPoint = S[imin];
+        return imin;
     }
 
     /**
@@ -110,56 +130,6 @@ public class ConvexHull {
         return output;
     }
     
-    class CompareAngle : IComparer<Vector2>  {
-        Vector2 center;
-
-        public CompareAngle(Vector2 center) {
-            this.center = center;
-        }
-
-        public int Compare(Vector2 i1, Vector2 i2) { 
-            float PI = Mathf.PI;
-            float EPSILON = 0.00001f;
-
-            Vector2 tmp1 = i1 - center;
-            float a1 = ConvexHull.CalculateAngle(tmp1, new Vector2(1, 0));
-            if (tmp1.y < 0) {
-                a1 = (PI - a1) + PI;
-            }
-
-            Vector2 tmp2 = i2 - center;
-            float a2 = ConvexHull.CalculateAngle(tmp2, new Vector2(1, 0));
-            if (tmp2.y < 0) {
-                a2 = (PI - a2) + PI;
-            }
-
-            if (Mathf.Abs(a1 - a2) < EPSILON) {
-                return tmp1.magnitude.CompareTo(tmp2.magnitude);
-            }
-            return a1.CompareTo(a2); 
-        } 
-    }
-
-    public static void sortByAngle(ref List<Vector2> S, Vector2 center) {
-        CompareAngle gg = new CompareAngle(center);
-        S.Sort(gg); 
-    }
-
-    public static int mod(int a, int b) {
-        int r = a % b;
-        return r < 0 ? r + b : r;
-    }
-
-    class CompareYCoordinates : IComparer<Vector2>  {
-        public int Compare(Vector2 lhs, Vector2 rhs) { 
-            if (lhs[1] != rhs[1])
-                return lhs[1].CompareTo(rhs[1]);
-
-            /* Otherwise, fall back to comparing by x coordinates. */
-            return lhs[0].CompareTo(rhs[0]);
-        } 
-    }
-
     class CompareByAngle : IComparer<Vector2>  {
         Vector2 origin;
 
@@ -168,6 +138,8 @@ public class ConvexHull {
         }
 
         public int Compare(Vector2 lhs, Vector2 rhs) { 
+            float PI = Mathf.PI;
+
             Vector2 one = lhs - origin;
             Vector2 two = rhs - origin;
 
@@ -176,15 +148,22 @@ public class ConvexHull {
             float negCosOne = -one[0] / normOne;
             float negCosTwo = -two[0] / normTwo;
 
+            if (one.y < 0) negCosOne = (PI - negCosOne) + PI;
+            if (two.y < 0) negCosTwo = (PI - negCosTwo) + PI;
+
             if (negCosOne != negCosTwo) return negCosOne.CompareTo(negCosTwo);
 
             return normOne.CompareTo(normTwo);
         } 
     }
 
-    public static void sortByAngle2(ref List<Vector2> S, Vector2 center) {
-        CompareByAngle gg = new CompareByAngle(center);
-        S.Sort(gg); 
+    public static void sortByAngle(ref List<Vector2> S, Vector2 center) {
+        S.Sort(new CompareByAngle(center)); 
+    }
+
+    public static int mod(int a, int b) {
+        int r = a % b;
+        return r < 0 ? r + b : r;
     }
 
     public static void GrahamScan(List<Vector2> S, ref List<Vector2> P) {
@@ -193,27 +172,21 @@ public class ConvexHull {
             return;
         }
         
-        List<Vector2> tmp = new List<Vector2>(S);
-        tmp.Sort(new CompareYCoordinates()); 
+        Vector2 pMinY = new Vector2();
+        int idxMinY = getBottommostPoint(S, ref pMinY);
         
-        int minY = S.FindIndex(x => x == tmp[0]);
-        int next = minY + 1;
-
         List<Vector2> points = new List<Vector2>();
-        for(int i = 0; i < minY; i++)   {
+        for(int i = 0; i < S.Count; i++) {
+            if (i == idxMinY) continue;
             points.Add(S[i]);
         }   
 
-        for(int i = next; i < S.Count; i++) {
-            points.Add(S[i]);
-        }        
+        sortByAngle(ref points, pMinY);
 
-        points.Sort(new CompareByAngle(S[minY])); 
-
-        points.Add(S[minY]);
+        points.Add(pMinY);
 
         List<Vector2> result = new List<Vector2>();
-        result.Add(S[minY]);
+        result.Add(pMinY);
         result.Add(points[0]);
 
         for (int i = 1; i < points.Count; ++i) {
