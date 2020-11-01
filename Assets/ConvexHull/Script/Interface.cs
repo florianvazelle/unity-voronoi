@@ -107,7 +107,7 @@ public class Interface: MonoBehaviour
     }
 
     static public void SortInClockWise(ref List<Vector2> points2D) {
-        ConvexHull.sortByAngle(ref points2D, ConvexHull.getBarycenter(points2D));
+        ConvexHull.SortByAngle(ref points2D, ConvexHull.GetBarycenter(points2D));
         points2D.Reverse();
     }
         
@@ -143,7 +143,7 @@ public class Interface: MonoBehaviour
         }
 
         List<int> indices = new List<int>();
-        Vector2 center = ConvexHull.getBarycenter(points2D);
+        Vector2 center = ConvexHull.GetBarycenter(points2D);
         points2D.Add(points2D[0]); // to close the mesh
         points2D.Add(center);
         int centerIdx = points2D.Count - 1;

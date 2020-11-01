@@ -171,7 +171,7 @@ public class ConvexHullTest
             new Vector2(6, 6)
         };
         Vector2 expected = new Vector2(2, 2);
-        Vector2 output = ConvexHull.getBarycenter(input);
+        Vector2 output = ConvexHull.GetBarycenter(input);
         Assert.IsTrue(expected == output);
     }
 
@@ -206,7 +206,7 @@ public class ConvexHullTest
             new Vector2(0, 0)
         };
 
-        ConvexHull.sortByAngle(ref inoutput, ConvexHull.getBarycenter(inoutput));
+        ConvexHull.SortByAngle(ref inoutput, ConvexHull.GetBarycenter(inoutput));
 
         Assert.IsTrue(inoutput.Count == expected.Count);
         for (int i = 0; i < inoutput.Count; i++) {

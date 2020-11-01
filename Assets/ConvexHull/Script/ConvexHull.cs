@@ -15,10 +15,10 @@ public class ConvexHull {
     }
     
     /**
-    * getLeftmostPoint
+    * GetLeftmostPoint
     * Return index of the left most point of a set of point, and this point is store in the out parameter `leftmostPoint`
     */
-    public static int getLeftmostPoint(List<Vector2> S, ref Vector2 leftmostPoint) {
+    public static int GetLeftmostPoint(List<Vector2> S, ref Vector2 leftmostPoint) {
         int imin = 0;
         Vector2 pmin = S[imin];
         for (int i = 1; i < S.Count; i++) {
@@ -34,10 +34,10 @@ public class ConvexHull {
     }
 
     /**
-    * getBottommostPoint
+    * GetBottommostPoint
     * Return index of the bottom most point of a set of point, and this point is store in the out parameter `bottommostPoint`
     */
-    public static int getBottommostPoint(List<Vector2> S, ref Vector2 bottommostPoint) {
+    public static int GetBottommostPoint(List<Vector2> S, ref Vector2 bottommostPoint) {
         int imin = 0;
         Vector2 pmin = S[imin];
         for (int i = 1; i < S.Count; i++) {
@@ -53,10 +53,10 @@ public class ConvexHull {
     }
 
     /**
-    * isLeft
+    * IsLeft
     * Return true if s is on left of the (r, endpoint) line, else return false
     */
-    public static bool isLeft(Vector2 s, Vector2 r, Vector2 end) {
+    public static bool IsLeft(Vector2 s, Vector2 r, Vector2 end) {
         Vector2 a = new Vector2(end.x - r.x, end.y - r.y);
         Vector2 b = new Vector2(r.x - s.x, r.y - s.y);
         return (a.x * b.y - a.y * b.x > 0);
@@ -75,7 +75,7 @@ public class ConvexHull {
         Vector2 endpoint = new Vector2();
 
         // search for the first vertex of the convex hull
-        ConvexHull.getLeftmostPoint(S, ref pointOnHull);
+        ConvexHull.GetLeftmostPoint(S, ref pointOnHull);
 
         int i = 0;
         do {
@@ -84,7 +84,7 @@ public class ConvexHull {
 
             // search closest point to the left
             for (int j = 1; j < S.Count; j++) {
-                if (endpoint == pointOnHull || ConvexHull.isLeft(S[j], P[i], endpoint)) {
+                if (endpoint == pointOnHull || ConvexHull.IsLeft(S[j], P[i], endpoint)) {
                     endpoint = S[j];
                 }
             }
@@ -103,7 +103,7 @@ public class ConvexHull {
     }
 
     // https://www.tutorialspoint.com/convex-polygon-in-cplusplus
-    public static bool isConvex(List<Vector2> points) {
+    public static bool IsConvex(List<Vector2> points) {
         bool neg = false;
         bool pos = false;
         int n = points.Count;
@@ -121,7 +121,7 @@ public class ConvexHull {
         return true;
     } 
 
-    public static Vector2 getBarycenter(List<Vector2> S) {
+    public static Vector2 GetBarycenter(List<Vector2> S) {
         Vector2 output = new Vector2(0, 0);
         for (int i = 0; i < S.Count; i++) {
             output = output + S[i];
@@ -157,7 +157,7 @@ public class ConvexHull {
         } 
     }
 
-    public static void sortByAngle(ref List<Vector2> S, Vector2 center) {
+    public static void SortByAngle(ref List<Vector2> S, Vector2 center) {
         S.Sort(new CompareByAngle(center)); 
     }
 
@@ -173,7 +173,7 @@ public class ConvexHull {
         }
         
         Vector2 pMinY = new Vector2();
-        int idxMinY = getBottommostPoint(S, ref pMinY);
+        int idxMinY = GetBottommostPoint(S, ref pMinY);
         
         List<Vector2> points = new List<Vector2>();
         for(int i = 0; i < S.Count; i++) {
@@ -181,7 +181,7 @@ public class ConvexHull {
             points.Add(S[i]);
         }   
 
-        sortByAngle(ref points, pMinY);
+        SortByAngle(ref points, pMinY);
 
         points.Add(pMinY);
 
@@ -205,7 +205,7 @@ public class ConvexHull {
 
     public static void OldGrahamScan(List<Vector2> S, ref List<Vector2> P) {
         P = S;
-        ConvexHull.sortByAngle(ref P, ConvexHull.getBarycenter(S));  // we sort all points compared to barycenter
+        ConvexHull.SortByAngle(ref P, ConvexHull.GetBarycenter(S));  // we sort all points compared to barycenter
 
         // trier S par angles, par rapport au barycentre
         // si meme angle, prendre le plus éloigné
@@ -219,10 +219,10 @@ public class ConvexHull {
                 P[mod(pivot - 1, P.Count)],
                 P[mod(pivot, P.Count)],
                 P[mod(pivot + 1, P.Count)],
-                ConvexHull.getBarycenter(P),
+                ConvexHull.GetBarycenter(P),
             };
 
-            if (ConvexHull.isConvex(tmp)) {
+            if (ConvexHull.IsConvex(tmp)) {
                 pivot = mod(pivot + 1, P.Count);
                 avance = true;
             } else {
