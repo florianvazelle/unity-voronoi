@@ -28,7 +28,7 @@ public class Interface: MonoBehaviour
             elapsedMs = -1;
             ResetScene();
             pointsCloud3D = GenerateRandomVertices(verticesAmount);
-            GeneratePoints(pointPrefab, new List<List<Vector3>> () { pointsCloud3D });
+            GeneratePoints(pointPrefab, pointsCloud3D);
         }
 
         if (ValidCloudPoint()) {
@@ -86,15 +86,13 @@ public class Interface: MonoBehaviour
         }
     }
 
-    static void GeneratePoints(GameObject prefab, List<List<Vector3>> buildingVertices) {
-        for (int i = 0; i < buildingVertices.Count; i++) {
-            for (int j = 0; j < buildingVertices[i].Count; j++) {
-                Instantiate(prefab, buildingVertices[i][j], Quaternion.identity);
-            }
-        }
+    static public void GeneratePoints(GameObject prefab, List<Vector3> vertices) {
+		for (int i = 0; i < vertices.Count; i++) {
+			Instantiate(prefab, vertices[i], Quaternion.identity);
+		}
     }
 
-    static List<Vector3> UpdateVertices() {
+    static public List<Vector3> UpdateVertices() {
         List<Vector3> newPoints3D = new List<Vector3>();
         GameObject[] allGOs = FindObjectsOfType<GameObject>();
         foreach(var go in allGOs) {
@@ -106,8 +104,8 @@ public class Interface: MonoBehaviour
     }
 
     static List<Vector3> GenerateRandomVertices(int verticesAmount) {
-        Vector3 uperLeftCorner = Camera.main.ScreenToWorldPoint(new Vector3(0, 0, 10)); // -10.0f if bugs
-        Vector3 lowerRightCorner = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, 10)); // -10.0f if bugs
+        Vector3 uperLeftCorner = Camera.main.ScreenToWorldPoint(new Vector3(100, 100, 10)); // -10.0f if bugs
+        Vector3 lowerRightCorner = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width - 100, Screen.height - 100, 10)); // -10.0f if bugs
         
         List<Vector3> points3D = new List<Vector3>();
         for (int i = 0; i < verticesAmount; i++) {
@@ -208,6 +206,6 @@ public class Interface: MonoBehaviour
         if (rend == null) {
             rend = thisBuilding.AddComponent<MeshRenderer>();
         }
-        rend.material = new Material(Shader.Find("Standard"));;
+        rend.material = new Material(Shader.Find("Standard"));
     }
 }
