@@ -6,50 +6,6 @@ using UnityEngine;
 
 public class ConvexHull3D {
 
-	// https://stackoverflow.com/questions/49769459/convert-points-on-a-3d-plane-to-2d-coordinates#answer-49771112
-	public static Matrix4x4 GetRotationAffineMatrix3DTo2D(Vector3 A, Vector3 B, Vector3 C) {
-		Vector3 N = Vector3.Cross(B - A, C - A);
-		Vector3 U = Vector3.Normalize(B - A);
-		Vector3 uN = Vector3.Normalize(N);
-		Vector3 V = -Vector3.Cross(U, uN); 
-
-		Vector3 u = A + U;
-		Vector3 v = A + V;
-		Vector3 n = A + uN;
-
-		Matrix4x4 S = new Matrix4x4(
-			new Vector4(A.x, A.y, A.z, 1),
-			new Vector4(u.x, u.y, u.z, 1),
-			new Vector4(v.x, v.y, v.z, 1),
-			new Vector4(n.x, n.y, n.z, 1)
-		);
-
-		Matrix4x4 D = new Matrix4x4(
-			new Vector4(0, 0, 0, 1),
-			new Vector4(1, 0, 0, 1),
-			new Vector4(0, 1, 0, 1),
-			new Vector4(0, 0, 1, 1)
-		);
-
-		return D * S.inverse;
-	}
-
-	public static void SortByAngle3D(List<Vector3> input) {
-		Matrix4x4 M = GetRotationAffineMatrix3DTo2D(input[0], input[1], input[2]);
-
-		var input2D = input
-			.Select((x, i) => (Vector2)M.MultiplyPoint3x4(input[i]))
-			.ToList();
-
-		var Comparer = new ConvexHull.CompareByAngle(ConvexHull.GetBarycenter(input2D));
-		
-		input = input2D
-			.Select((x, i) => new KeyValuePair<int, Vector3>(i, x))
-			.OrderBy(x => x.Value, Comparer)
-			.Select(x => input[x.Key])
-			.ToList();
-	}
-
 	/* E[i, j] indicates which (up to two) other points combine with the edge i and
 	 * j to make a face in the hull.  Only defined when i < j.
 	 */
