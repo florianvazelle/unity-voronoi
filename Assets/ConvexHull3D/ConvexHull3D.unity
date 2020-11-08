@@ -354,8 +354,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d77a17628ff27aec85f110d70114a1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resetCameraPosition: {x: 0, y: 0, z: 0}
-  resetCameraRotation: {x: 0, y: 0, z: 0}
+  resetCameraPosition: {x: 0, y: 0, z: -30}
+  resetCameraRotation: {x: 0, y: 0, z: -30}
   moveTrigger: 2
   enableMove: 1
   invertMoveDirection: 0

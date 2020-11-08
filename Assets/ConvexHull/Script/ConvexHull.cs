@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 // This line enables the testing framework to call internal methods
@@ -130,7 +131,7 @@ public class ConvexHull {
         return output;
     }
     
-    class CompareByAngle : IComparer<Vector2>  {
+    public class CompareByAngle : IComparer<Vector2>  {
         Vector2 origin;
 
         public CompareByAngle(Vector2 origin) {
@@ -175,13 +176,10 @@ public class ConvexHull {
         Vector2 pMinY = new Vector2();
         int idxMinY = GetBottommostPoint(S, ref pMinY);
         
-        List<Vector2> points = new List<Vector2>();
-        for(int i = 0; i < S.Count; i++) {
-            if (i == idxMinY) continue;
-            points.Add(S[i]);
-        }   
-
-        SortByAngle(ref points, pMinY);
+        var points = S
+            .Where((x, i) => i != idxMinY)
+            .OrderBy(x => x, new CompareByAngle(pMinY))
+            .ToList();
 
         points.Add(pMinY);
 
