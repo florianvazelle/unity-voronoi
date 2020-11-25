@@ -223,6 +223,7 @@ GameObject:
   m_Component:
   - component: {fileID: 958204999}
   - component: {fileID: 958204998}
+  - component: {fileID: 958205000}
   m_Layer: 0
   m_Name: EdgeFlipping
   m_TagString: Untagged
@@ -237,12 +238,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 958204997}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9429616d26e421e4583b04052ba439a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: 26ddd0d733575fb69a7172477ae9e4d2, type: 2}
+  randomVertices: []
 --- !u!4 &958204999
 Transform:
   m_ObjectHideFlags: 0
@@ -257,6 +259,20 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &958205000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 958204997}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf1c20b30e25ef49a463c1e30a75097, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  numberOfPoints: 10
+  triangleMaterial: {fileID: 2100000, guid: 26ddd0d733575fb69a7172477ae9e4d2, type: 2}
 --- !u!1 &1323588648
 GameObject:
   m_ObjectHideFlags: 0
