@@ -3,6 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+/*
+0) créer un nuage de point Pi
+1) créer un super triangle qui englobe tout les points
+2) selection d'un point p
+3) relier P à tout les points du super triangle (decomposition en 3 triangles)
+4) Pour chaque point P sans triangle :
+	Pour chaque triangle T :
+		Si ( P est dans le cercle circonscrit de T)
+			"On a 2 triangles à delete"
+			flag le triangle
+	Si(deux triangles ou plus sont flag) {
+		Supprime les arretes commune des triangles flaggés
+	}  	
+	Relie P à tous les points des triangles flagué ( meme si 1 seul )
+*/
+
 public class Delaunay2D {
 
     public static Triangle GetSuperTriangle(List<Vector2> points){
@@ -36,11 +52,15 @@ public class Delaunay2D {
     public static void Delaunay(List<Vector2> points, ref List<Triangle> triangles) {
         List<Triangle> tmp_triangles;
 
+        // 1) créer un super triangle qui englobe tout les points
         triangles.Add(GetSuperTriangle(points));
 
+        // 2) selection d'un point p
+        // 3) relier P à tout les points du super triangle (decomposition en 3 triangles)
+        // 4) Pour chaque point P sans triangle
         for(var i = 0; i < points.Count; i++) {
             tmp_triangles = new List<Triangle>();
-
+            
             for(var j = 0; j < triangles.Count; j++) {
                 Triangle currentTriangle = triangles[j];
                 Circle circumcircle = currentTriangle.CircumscribedCircle();
