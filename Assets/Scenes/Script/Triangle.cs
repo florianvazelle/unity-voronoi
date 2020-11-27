@@ -11,20 +11,6 @@ public struct Triangle {
         };
     }
 
-    public override bool Equals(object obj)  {
-        if (!(obj is Triangle))
-          return false;
-
-        Triangle triangle = (Triangle) obj;
-
-
-        bool res = true;
-        for(var j = 0; j < 3; j++) {
-            res = res && vertices[j] == triangle.vertices[j];
-        }
-        return res;
-    }
-
     public Circle CircumscribedCircle() {
         Vector2 a = vertices[0];
         Vector2 b = vertices[1];

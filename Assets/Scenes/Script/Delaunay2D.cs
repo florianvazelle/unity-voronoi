@@ -53,7 +53,8 @@ public class Delaunay2D {
         List<Triangle> tmp_triangles;
 
         // 1) créer un super triangle qui englobe tout les points
-        triangles.Add(GetSuperTriangle(points));
+        Triangle superTriangle = GetSuperTriangle(points);
+        triangles.Add(superTriangle);
 
         // 2) selection d'un point p
         // Pour chaque point P sans triangle :
@@ -81,7 +82,7 @@ public class Delaunay2D {
                         if(index == -1) {
                             tmp_triangles.Add(tria);
                         } else {
-                            tmp_triangles.RemoveAt(index);
+                            // tmp_triangles.RemoveAt(index);
                         }
                     }
 
@@ -95,7 +96,9 @@ public class Delaunay2D {
         }
 
         // supprimer tous les triangles de "triangles" qui ont 1 point commun avec le super triangle
-        // TODO
+        triangles = triangles.Where(t => !(t.vertices[0] == superTriangle.vertices[0] || t.vertices[1] == superTriangle.vertices[0] || t.vertices[2] == superTriangle.vertices[0]
+            ||  t.vertices[0] == superTriangle.vertices[1] || t.vertices[1] == superTriangle.vertices[1] || t.vertices[2] == superTriangle.vertices[1] 
+            || t.vertices[0] == superTriangle.vertices[2] || t.vertices[1] == superTriangle.vertices[2] || t.vertices[2] == superTriangle.vertices[2])).ToList();
 
         for(int i = 0; i < triangles.Count; i++) {
             Debug.Log(triangles[i].vertices[0] + " " + triangles[i].vertices[1] + " " + triangles[i].vertices[2]);
