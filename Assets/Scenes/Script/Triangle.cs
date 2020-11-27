@@ -81,4 +81,16 @@ struct Triangle
         rend.material = mat;
         material = mat;
     }
+
+    // public Vector2 CircumscribedCircle() {
+    //     float d = 2 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
+    //     float ux = ((a.x * a.x + a.y * a.y) * (b.y - c.y) + (b.x * b.x + b.y * b.y) * (c.y - a.y) + (c.x * c.x + c.y * c.y) * (a.y - b.y)) / d;
+    //     float uy = ((a.x * a.x + a.y * a.y) * (c.x - b.x) + (b.x * b.x + b.y * b.y) * (a.x - c.x) + (c.x * c.x + c.y * c.y) * (b.x - a.x)) / d;
+
+    //     Vector2 center = Vector2(ux, uy)
+    //     return new Cirlce() {
+    //         center = center,
+    //         radius = Vector2.Distance(center, b)
+    //     };
+    // }
 }
