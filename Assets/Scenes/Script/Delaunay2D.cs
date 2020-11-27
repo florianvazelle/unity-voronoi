@@ -56,15 +56,17 @@ public class Delaunay2D {
         triangles.Add(GetSuperTriangle(points));
 
         // 2) selection d'un point p
-        // 3) relier P à tout les points du super triangle (decomposition en 3 triangles)
-        // 4) Pour chaque point P sans triangle
+        // Pour chaque point P sans triangle :
         for(var i = 0; i < points.Count; i++) {
             tmp_triangles = new List<Triangle>();
             
+            // Pour chaque triangle T :
             for(var j = 0; j < triangles.Count; j++) {
                 Triangle currentTriangle = triangles[j];
                 Circle circumcircle = currentTriangle.CircumscribedCircle();
 
+                // Si ( P est dans le cercle circonscrit de T) "On a 2 triangles à delete"
+			        //flag le triangle
                 if(circumcircle.Contains(points[i])) {
 
                     for(var k = 0; k < 3; k++) {
@@ -74,6 +76,7 @@ public class Delaunay2D {
                             points[i]
                         );
 
+                        // trouve l'index pour ne pas recréer un triangle deja enregistré (optionnel)
                         int index = tmp_triangles.FindIndex(t => t.Equals(tria));
                         if(index == -1) {
                             tmp_triangles.Add(tria);
@@ -90,6 +93,9 @@ public class Delaunay2D {
                 triangles.Add(tmp_triangles[j]);
             } 
         }
+
+        // supprimer tous les triangles de "triangles" qui ont 1 point commun avec le super triangle
+        // TODO
 
         for(int i = 0; i < triangles.Count; i++) {
             Debug.Log(triangles[i].vertices[0] + " " + triangles[i].vertices[1] + " " + triangles[i].vertices[2]);
