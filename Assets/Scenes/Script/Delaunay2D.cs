@@ -1,128 +1,78 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class Delaunay2D : MonoBehaviour
-{
-    public int numberOfPoints;
-    public Material triangleMaterial;
+public class Delaunay2D {
 
-    private Camera _camera;
-    private const int cameraZoffset = 10;
+    public static Triangle GetSuperTriangle(List<Vector2> points){
+        // on récupère les bornes
+        var left = points.Min(p => p.x);
+        var right = points.Max(p => p.x);
+        var top = points.Max(p => p.y);
+        var bottom = points.Min(p => p.y);
+        
+        // Cercle circonscrit du rectangle entourant tout les points
+        var center = new Vector2((left + right) / 2, (top + bottom) / 2);
+        var topleft = new Vector2(left, top);
+        var radius = Vector2.Distance(center, topleft);
 
-    private List<GameObject> vertices;
-    private Triangle superTriangle;
-    private List<Triangle> triangles; // err when private
+        // Le triangle du cercle circonscrit
+        var x1 = center.x - Mathf.Sqrt(3) * radius;
+        var y1 = center.y - radius;
+        var p1 = new Vector2(x1, y1);
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        InitCamera();
-        GenerateRandomPoints();
-        GenerateSuperTriangle();
-        SplitSuperTriangle();
-        MainLoop();
+        var x2 = center.x + Mathf.Sqrt(3) * radius;
+        var y2 = center.y - radius;
+        var p2 = new Vector2(x2, y2);
+
+        var x3 = center.x;
+        var y3 = center.y + 2 * radius;
+        var p3 = new Vector2(x3, y3);
+
+        return new Triangle(p1, p2, p3);
     }
 
-    private void InitCamera()
-    {
-        _camera = Camera.main;
-        _camera.orthographic = true;
-    }
+    public static void Delaunay(List<Vector2> points, ref List<Triangle> triangles) {
+        List<Triangle> tmp_triangles;
 
-    private void GenerateRandomPoints()
-    {
-        Debug.Log("Generation de " + numberOfPoints + " points");
-        Vector3 uperLeftCorner = _camera.ScreenToWorldPoint(new Vector3(
-            0,
-            0,
-            cameraZoffset)); // -10.0f if bugs
-        Vector3 lowerRightCorner = _camera.ScreenToWorldPoint(new Vector3(
-            Screen.width,
-            Screen.height,
-            cameraZoffset)); // -10.0f if bugs
-        //Debug.Log(" uperLeftCorner : " + uperLeftCorner + " lowerRightCorner : " + lowerRightCorner);
+        triangles.Add(GetSuperTriangle(points));
 
-        vertices = new List<GameObject>(numberOfPoints);
-        for (int i = 0; i < numberOfPoints; i++)
-        {
-            GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            sphere.transform.position = new Vector3(
-                Random.Range(uperLeftCorner.x, lowerRightCorner.x),
-                Random.Range(uperLeftCorner.y, lowerRightCorner.y),
-                0);
-            vertices.Add(sphere);
-        }
-    }
-    
-    private void GenerateSuperTriangle()
-    {
-        superTriangle = new Triangle(
-            new Vector3(-40, -20, 0),
-            new Vector3(0, 40, 0),
-            new Vector3(40, -20, 0)
-        );
-        superTriangle.CreateMesh(triangleMaterial, "superTriangle");
-    }
+        for(var i = 0; i < points.Count; i++) {
+            tmp_triangles = new List<Triangle>();
 
-    private void SplitSuperTriangle()
-    {
-        triangles = new List<Triangle>();
+            for(var j = 0; j < triangles.Count; j++) {
+                Triangle currentTriangle = triangles[j];
+                Circle circumcircle = currentTriangle.CircumscribedCircle();
 
-        // select a random point (here the first one)
-        Triangle triangle1 = new Triangle(
-            superTriangle.vertices[0].transform.position,
-            superTriangle.vertices[1].transform.position,
-            vertices[0].transform.position
-        );
-        triangle1.CreateMesh(triangleMaterial, "triangle1");
-        triangles.Add(triangle1);
+                if(circumcircle.Contains(points[i])) {
 
-        Triangle triangle2 = new Triangle(
-            superTriangle.vertices[1].transform.position,
-            superTriangle.vertices[2].transform.position,
-            vertices[0].transform.position
-        );
-        triangle2.CreateMesh(triangleMaterial, "triangle2");
-        triangles.Add(triangle2);
+                    for(var k = 0; k < 3; k++) {
+                        Triangle tria = new Triangle(
+                            currentTriangle.vertices[k],
+                            currentTriangle.vertices[(k + 1) % 3],
+                            points[i]
+                        );
 
-        Triangle triangle3 = new Triangle(
-            superTriangle.vertices[2].transform.position,
-            superTriangle.vertices[0].transform.position,
-            vertices[0].transform.position
-        );
-        triangle3.CreateMesh(triangleMaterial, "triangle3");
-        triangles.Add(triangle3);
+                        int index = tmp_triangles.FindIndex(t => t.Equals(tria));
+                        if(index == -1) {
+                            tmp_triangles.Add(tria);
+                        } else {
+                            tmp_triangles.RemoveAt(index);
+                        }
+                    }
 
-        // remove used vertice
-        vertices.RemoveAt(0);
-    }
-
-    private void MainLoop()
-    {
-        // Pour chaque point non utilisé dans un triangle
-        // make list of unused vertices
-
-        Debug.Log(vertices.Count);
-        while (vertices.Count > 0)
-        {
-            // create an array for each triangle the point is in (circumscribedCircle area)
-            List<Triangle> circumscribedCircleTriangle = new List<Triangle>();
-            foreach (var triangle in triangles)
-            {
-                // est ce que vertices 0 est dans le cercle circonscrit du triangle
-                
-                Vector3 p1 = triangle.vertices[0].transform.position;
-                Vector3 p2 = triangle.vertices[1].transform.position;
-                Vector3 p3 = triangle.vertices[2].transform.position;
-                Vector3 v1 = p2 - p1;
-                Vector3 v2 = p3 - p1;
+                    triangles.RemoveAt(j);
+                }
             }
 
-            vertices.RemoveAt(0);
-            Debug.Log(vertices.Count);
+            for(int j = 0; j < tmp_triangles.Count; j++) {
+                triangles.Add(tmp_triangles[j]);
+            } 
         }
 
-
+        for(int i = 0; i < triangles.Count; i++) {
+            Debug.Log(triangles[i].vertices[0] + " " + triangles[i].vertices[1] + " " + triangles[i].vertices[2]);
+        } 
     }
 }

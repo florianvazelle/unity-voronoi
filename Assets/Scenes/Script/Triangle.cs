@@ -2,95 +2,72 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-struct Triangle
-{
-    public List<GameObject> vertices;
-    public GameObject surface;
-    public Material material;
+public struct Triangle {
+    public List<Vector2> vertices;
 
-    public Triangle( List<GameObject> array ) { 
-        vertices = array;
-        surface = null;
-        material = null;
+    public Triangle(Vector2 p1, Vector2 p2, Vector2 p3) {
+        vertices = new List<Vector2>() {
+            p1, p2, p3
+        };
     }
 
-    public Triangle( List<Vector3> array ) {
-        vertices = new List<GameObject>(3);
-        for (int i = 0; i < vertices.Count; i++) {
-            vertices[i].transform.position = array[i]; 
+    public override bool Equals(object obj)  {
+        if (!(obj is Triangle))
+          return false;
+
+        Triangle triangle = (Triangle) obj;
+
+
+        bool res = true;
+        for(var j = 0; j < 3; j++) {
+            res = res && vertices[j] == triangle.vertices[j];
         }
-        surface = null;
-        material = null;
+        return res;
     }
 
-    public Triangle(Vector3 p1, Vector3 p2, Vector3 p3)
-    {
-        vertices = new List<GameObject>();
+    public Circle CircumscribedCircle() {
+        Vector2 a = vertices[0];
+        Vector2 b = vertices[1];
+        Vector2 c = vertices[2];
 
-        List<Vector3> positions = new List<Vector3>();
-        positions.Add(p1);
-        positions.Add(p2);
-        positions.Add(p3);
+        float d = 2 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
+        float ux = ((a.x * a.x + a.y * a.y) * (b.y - c.y) + (b.x * b.x + b.y * b.y) * (c.y - a.y) + (c.x * c.x + c.y * c.y) * (a.y - b.y)) / d;
+        float uy = ((a.x * a.x + a.y * a.y) * (c.x - b.x) + (b.x * b.x + b.y * b.y) * (a.x - c.x) + (c.x * c.x + c.y * c.y) * (b.x - a.x)) / d;
 
-        foreach (var p in positions) {
-            GameObject gameObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            gameObject.transform.position = p;
-            vertices.Add(gameObject);
-        }
-        surface = null;
-        material = null;
+        Vector2 center = new Vector2(ux, uy);
+        return new Circle() {
+            center = center,
+            radius = Vector2.Distance(center, b)
+        };
     }
 
-    public void CreateMesh(Material mat, string name = "") {
-        // Create a triangle game object
-        surface = new GameObject(name);
-        //float height = triangles[i].vertices[1].y;
+    // https://github.com/photonstorm/phaser/blob/master/src/geom/triangle/Contains.js
+    public bool Contains(Vector2 point) {
+        Vector2 a = vertices[0];
+        Vector2 b = vertices[1];
+        Vector2 c = vertices[2];
 
-        // Convert vertices to array for mesh
+        var v0x = c.x - a.x;
+        var v0y = c.y - a.y;
 
-        var vertex = new  List<Vector3>();
-        var normals = new List<Vector3>();
-        var indices = new List<int>();
-        
-        for (int i = 0; i < vertices.Count; i++) {
-            vertex.Add(vertices[i].transform.position);
-        }
+        var v1x = b.x - a.x;
+        var v1y = b.y - a.y;
 
-        for (int i = 0; i < vertices.Count; i++) {
-            normals.Add(Vector3.back);
-        }
+        var v2x = point.x - a.x;
+        var v2y = point.y - a.y;
 
-        for (int k = 0; k < vertices.Count; k++) {
-            indices.Add(k);
-        }
+        var dot00 = (v0x * v0x) + (v0y * v0y);
+        var dot01 = (v0x * v1x) + (v0y * v1y);
+        var dot02 = (v0x * v2x) + (v0y * v2y);
+        var dot11 = (v1x * v1x) + (v1y * v1y);
+        var dot12 = (v1x * v2x) + (v1y * v2y);
 
-        // Create and apply the mesh
-        MeshFilter mf = surface.AddComponent<MeshFilter>();
+        // Compute barycentric coordinates
+        var bar = ((dot00 * dot11) - (dot01 * dot01));
+        var inv = (bar == 0) ? 0 : (1 / bar);
+        var u = ((dot11 * dot02) - (dot01 * dot12)) * inv;
+        var v = ((dot00 * dot12) - (dot01 * dot02)) * inv;
 
-        Mesh mesh = new Mesh();
-        mf.mesh = mesh;
-
-        mesh.SetVertices(vertex);
-        mesh.SetNormals(normals);
-        mesh.SetTriangles(indices, 0);
-
-        mesh.RecalculateBounds();
-        mesh.RecalculateNormals();
-
-        Renderer rend = surface.AddComponent<MeshRenderer>();
-        rend.material = mat;
-        material = mat;
+        return (u >= 0 && v >= 0 && (u + v < 1));
     }
-
-    // public Vector2 CircumscribedCircle() {
-    //     float d = 2 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
-    //     float ux = ((a.x * a.x + a.y * a.y) * (b.y - c.y) + (b.x * b.x + b.y * b.y) * (c.y - a.y) + (c.x * c.x + c.y * c.y) * (a.y - b.y)) / d;
-    //     float uy = ((a.x * a.x + a.y * a.y) * (c.x - b.x) + (b.x * b.x + b.y * b.y) * (a.x - c.x) + (c.x * c.x + c.y * c.y) * (b.x - a.x)) / d;
-
-    //     Vector2 center = Vector2(ux, uy)
-    //     return new Cirlce() {
-    //         center = center,
-    //         radius = Vector2.Distance(center, b)
-    //     };
-    // }
 }
