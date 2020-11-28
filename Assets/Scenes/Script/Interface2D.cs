@@ -180,6 +180,6 @@ public class Interface2D : MonoBehaviour
         if (rend == null) {
             rend = thisBuilding.AddComponent<MeshRenderer>();
         }
-        rend.material = new Material(Shader.Find("Standard"));
+        rend.material = new Material(Shader.Find("SuperSystems/Wireframe-Shaded-Unlit"));
     }
 }

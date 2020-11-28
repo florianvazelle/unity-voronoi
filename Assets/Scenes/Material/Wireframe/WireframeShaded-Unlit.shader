@@ -3,10 +3,10 @@ Shader "SuperSystems/Wireframe-Shaded-Unlit"
 	Properties
 	{
 		_MainTex ("MainTex", 2D) = "white" {}
-		_WireThickness ("Wire Thickness", RANGE(0, 800)) = 100
-		_WireSmoothness ("Wire Smoothness", RANGE(0, 20)) = 3
-		_WireColor ("Wire Color", Color) = (0.0, 1.0, 0.0, 1.0)
-		_BaseColor ("Base Color", Color) = (0.0, 0.0, 0.0, 1.0)
+		_WireThickness ("Wire Thickness", RANGE(0, 800)) = 600
+		_WireSmoothness ("Wire Smoothness", RANGE(0, 20)) = 20
+		_WireColor ("Wire Color", Color) = (1.0, 0.0, 0.0, 1.0)
+		_BaseColor ("Base Color", Color) = (1.0, 1.0, 1.0, 1.0)
 	}
 
 	SubShader
@@ -124,7 +124,7 @@ Shader "SuperSystems/Wireframe-Shaded-Unlit"
 				// Early out if we know we are not on a line segment.
 				if(minDistanceToEdge > 0.9)
 				{
-					return fixed4(baseColor.rgb,0);
+					return fixed4(baseColor.rgb, 0);
 				}
 
 				// Smooth our line out
