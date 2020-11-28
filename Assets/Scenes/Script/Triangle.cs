@@ -1,14 +1,60 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public struct Triangle {
     public List<Vector2> vertices;
+    public List<Edge> edges;
 
     public Triangle(Vector2 p1, Vector2 p2, Vector2 p3) {
         vertices = new List<Vector2>() {
             p1, p2, p3
         };
+
+        edges = new List<Edge>() {
+            new Edge(p1, p2),
+            new Edge(p2, p3),
+            new Edge(p3, p1)
+        };
+    }
+
+    public bool isEqual(Triangle triangle) {
+        Vector2 p11 = vertices[0];
+        Vector2 p21 = vertices[1];
+        Vector2 p31 = vertices[2];
+
+        Vector2 p12 = triangle.vertices[0];
+        Vector2 p22 = triangle.vertices[1];
+        Vector2 p32 = triangle.vertices[2];
+
+        return ((p11 == p12 && p21 == p22 && p31 == p32) ||
+                (p11 == p12 && p21 == p32 && p31 == p22) ||
+                (p11 == p22 && p21 == p12 && p31 == p32) ||
+                (p11 == p22 && p21 == p32 && p31 == p12) || 
+                (p11 == p32 && p21 == p22 && p31 == p12) || 
+                (p11 == p32 && p21 == p12 && p31 == p22));
+    }
+
+    // Test si le triangle possède cette arête
+    public bool hasEdge(Edge edge) {
+        return edges.Count(e => e.isEqual(edge)) > 0;
+    }
+
+    // Retourne le point du triangle qui n'appartient pas a l'arête
+    public Vector2 GetOtherPoint(Edge edge) {
+        for (var i = 0; i < vertices.Count; i++) {
+            if (!edge.Contains(vertices[i])) {
+                return vertices[i];
+            }
+        }
+        // Techniquement cela ne passe jamais ici (edge = 2 points et triangle = 3 points)
+        return Vector2.zero;
+    }
+
+    // Retourne les arêtes du triangle qui ne corresponde pas
+    public List<Edge> GetOtherEdge(Edge edge) {
+        return edges.Where(e => !e.isEqual(edge)).ToList();
     }
 
     public Circle CircumscribedCircle() {

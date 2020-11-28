@@ -133,24 +133,21 @@ public class Interface2D : MonoBehaviour
     static public void GenerateMeshIndirect(List<Triangle> triangles) {
         triangles.ForEach(tri => SortInClockWise(ref tri.vertices));
 
-        
+        List<Vector2> points2D = new List<Vector2>();
+        List<int> indices = new List<int>();
         
         for(int i = 0; i < triangles.Count; i++) {
-            List<Vector2> points2D = new List<Vector2>();
-            List<int> indices = new List<int>();
-
             for(var j = 0; j < 3; j++) {
                 points2D.Add(triangles[i].vertices[j]);
-                indices.Add(j);
+                indices.Add(i * 3 + j);
             }
-
-            GenerateMesh(ConvertListVector2ToVector3(points2D), indices);
         }
 
+        GenerateMesh(ConvertListVector2ToVector3(points2D), indices);
     }
 
     static public void GenerateMesh(List<Vector3> vertices, List<int> indices) {
-        GameObject thisBuilding = null;// = GameObject.Find("Building");
+        GameObject thisBuilding = GameObject.Find("Building");
         if (thisBuilding == null) {
             // Create a building game object
             thisBuilding = new GameObject ("Building");
