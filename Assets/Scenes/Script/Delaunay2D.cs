@@ -105,9 +105,9 @@ public class Delaunay2D {
             // ***** Flip *****
 
             // Soit ABC et ABD deux triangles contenant un côté commun (appelons-le côté AB).
-            // Si le point D est dans le cercle circonscrit du triangle ABC, retournez le côté partagé et poussez le côté AD / DB / BC / CA vers la pile.
-            // Autrement dit, supprimez le triangle trouvé de la liste et mettez une nouvelle liste latérale sur la pile
-            // De plus, ajoutez le triangle nouvellement créé à la liste
+            // Si le point D est dans le cercle circonscrit du triangle ABC, on flip l'arête commune et on ajoute les arêtes AD / DB / BC / CA dans la pile.
+            // Autrement dit, on supprime les triangles qui ont l'arête commune et on met une nouvelle liste d'arête dans la pile
+            // De plus, on ajoute les triangles nouvellement créé à la liste
             foreach (var edge in edge_stack) {
 
                 // On trouve les triangles qui partage le coté courant
