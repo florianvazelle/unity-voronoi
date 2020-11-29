@@ -9,10 +9,12 @@ public class Interface2D : MonoBehaviour
     public GameObject pointPrefab;
 
     private Rect windowRect = new Rect(0, 0, 250, 250);
+    private List<Triangle> tris;
     private List<Vector3> pointsCloud3D;
     private int verticesAmount = 10;
 
     void Start() {
+        tris = new List<Triangle>();
         pointsCloud3D = new List<Vector3>();
     }
 
@@ -30,18 +32,28 @@ public class Interface2D : MonoBehaviour
         }
 
         if (ValidCloudPoint()) {
-            GUILayout.Label("Convex Hull");
-            List<Vector2> mesh2D = new List<Vector2>();
+            GUILayout.Label("Triangulation");
 
-            if (GUILayout.Button("Delaunay-isation")) {
+            if (GUILayout.Button("Direct Delaunay")) {
                 pointsCloud3D = UpdateVertices();
                 ResetMesh();
 
                 // Convertion
                 List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
                 
-                List<Triangle> tris = new List<Triangle>();
                 Delaunay2D.Delaunay(pointsCloud2D, ref tris);
+
+                GenerateMeshIndirect(tris);
+            }
+
+            if (GUILayout.Button("Direct Regular")) {
+                pointsCloud3D = UpdateVertices();
+                ResetMesh();
+
+                // Convertion
+                List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
+                
+                Delaunay2D.Regular(pointsCloud2D, ref tris);
 
                 GenerateMeshIndirect(tris);
             }
@@ -67,6 +79,7 @@ public class Interface2D : MonoBehaviour
         if (thisBuilding != null) {
             DestroyImmediate(thisBuilding);
         }
+        tris.Clear();
     }
 
     static public void GeneratePoints(GameObject prefab, List<Vector3> vertices) {

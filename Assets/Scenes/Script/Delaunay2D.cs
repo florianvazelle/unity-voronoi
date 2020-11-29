@@ -181,4 +181,101 @@ public class Delaunay2D {
             return true;
         }).ToList();
     }
+
+
+    private static bool Snip(List<Vector2> contour, int u, int v, int w, int n, int[] V) {
+        float Ax, Ay, Bx, By, Cx, Cy;
+
+        Ax = contour[V[u]].x;
+        Ay = contour[V[u]].y;
+
+        Bx = contour[V[v]].x;
+        By = contour[V[v]].y;
+
+        Cx = contour[V[w]].x;
+        Cy = contour[V[w]].y;
+
+        Triangle t = new Triangle(contour[V[u]], contour[V[v]], contour[V[w]]);
+
+        if (0.000001 > (((Bx-Ax)*(Cy-Ay)) - ((By-Ay)*(Cx-Ax)))) return false;
+
+        for (int p = 0; p < n; p++) {
+            if( (p == u) || (p == v) || (p == w) ) continue;
+            if (t.Contains(contour[V[p]])) return false;
+        }
+
+        return true;
+    }
+
+    static float Area(List<Vector2> contour) {
+        int n = contour.Count;
+
+        float A = 0.0f;
+
+        for(int p = n - 1, q = 0; q < n; p = q++) {
+            A += contour[p].x * contour[q].y - contour[q].x * contour[p].y;
+        }
+
+        return A * 0.5f;
+    }
+
+    public static void Regular(List<Vector2> contour, ref List<Triangle> result) {
+        Interface2D.SortInClockWise(ref contour);
+        /* allocate and initialize list of Vertices in polygon */
+
+        int n = contour.Count;
+        if ( n < 3 ) return;
+
+        int[] V = new int[n];
+
+        /* we want a counter-clockwise polygon in V */
+
+        if (0.0f < Area(contour))
+            for (int v = 0; v < n; v++) V[v] = v;
+        else
+            for(int v = 0; v < n; v++) V[v] = (n - 1) - v;
+
+        int nv = n;
+
+        /*  remove nv-2 Vertices, creating 1 triangle every time */
+        int count = 2 * nv;   /* error detection */
+
+        for(int m = 0, v = nv - 1; nv > 2; )
+        {
+            /* if we loop, it is probably a non-simple polygon */
+            if (0 >= (count--))
+            {
+                //** Triangulate: ERROR - probable bad polygon!
+                return;
+            }
+
+            /* three consecutive vertices in current polygon, <u,v,w> */
+            int u = v  ; if (nv <= u) u = 0;  /* previous */
+            v = u + 1; if (nv <= v) v = 0;      /* new v    */
+            int w = v + 1; if (nv <= w) w = 0;  /* next     */
+
+            if (Snip(contour, u, v, w, nv, V))
+            {
+                int a,b,c,s,t;
+
+                /* true names of the vertices */
+                a = V[u]; b = V[v]; c = V[w];
+
+                /* output Triangle */
+                result.Add(new Triangle(
+                    contour[a],
+                    contour[b],
+                    contour[c]
+                ));
+
+                m++;
+
+                /* remove v from remaining polygon */
+                for(s = v, t = v + 1; t < nv; s++, t++) V[s] = V[t]; nv--;
+
+                /* resest error detection counter */
+                count = 2 * nv;
+            }
+        }
+    }
 }
