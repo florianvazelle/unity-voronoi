@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static InterfaceUtils;
 
 public struct Edge {
     public Vector2 start, end;
@@ -220,7 +221,8 @@ public class Delaunay2D {
     }
 
     public static void Regular(List<Vector2> contour, ref List<Triangle> result) {
-        Interface2D.SortInClockWise(ref contour);
+        SortInClockWise(ref contour);
+        
         /* allocate and initialize list of Vertices in polygon */
 
         int n = contour.Count;
@@ -275,6 +277,110 @@ public class Delaunay2D {
 
                 /* resest error detection counter */
                 count = 2 * nv;
+            }
+        }
+    }
+
+    public static void FlipIntoDelaunay(ref List<Triangle> triangles) {
+        List<Vector2> points = new List<Vector2>();
+        foreach (var t in triangles) {
+            points.AddRange(t.vertices);
+        }
+
+        foreach (var p in points) {
+            // ***** Split *****
+
+            // Find all the triangles where the point is in their circumscribed circle
+            var hit_triangles = triangles.Where(t => {
+                Circle c = t.CircumscribedCircle();
+                return c.Contains(p);
+            }).ToList();
+
+            IEnumerable<Edge> edge_stack = Enumerable.Empty<Edge>();
+            foreach (var ht in hit_triangles) {
+                // On stock les arêtes
+                edge_stack = edge_stack.Concat(ht.edges);
+
+                // On supprime le triangle
+                int index = triangles.FindIndex(t => t.isEqual(ht));
+                triangles.RemoveAt(index);
+
+                // On le split en trois
+                for(var k = 0; k < 3; k++) {
+                    Triangle t = new Triangle(
+                        ht.vertices[k],
+                        ht.vertices[(k + 1) % 3],
+                        p
+                    );
+
+                    triangles.Add(t);
+                }
+            }
+            
+            // ***** Flip *****
+
+            // Soit ABC et ABD deux triangles contenant un côté commun (appelons-le côté AB).
+            // Si le point D est dans le cercle circonscrit du triangle ABC, on flip l'arête commune et on ajoute les arêtes AD / DB / BC / CA dans la pile.
+            // Autrement dit, on supprime les triangles qui ont l'arête commune et on met une nouvelle liste d'arête dans la pile
+            // De plus, on ajoute les triangles nouvellement créé à la liste
+            foreach (var edge in edge_stack) {
+
+                // On trouve les triangles qui partage le coté courant
+                var common_edge_triangles = triangles.Where(t => t.hasEdge(edge)).ToList();
+
+                // On ignorer s'il n'y a pas au minimum deux triangles
+                if (common_edge_triangles.Count < 2) {
+                    continue;
+                }
+
+                var triangle_ABC = common_edge_triangles[0];
+                var triangle_ABD = common_edge_triangles[1];
+
+                // Si les triangles sélectionnés sont identiques, on les supprime et on passe au coté suivant
+                if (triangle_ABC.isEqual(triangle_ABD)) {
+                    int index_ABC = triangles.FindIndex(t => t.isEqual(triangle_ABC));
+                    triangles.RemoveAt(index_ABC);
+                    int index_ABD = triangles.FindIndex(t => t.isEqual(triangle_ABD));
+                    triangles.RemoveAt(index_ABD);
+                    continue;
+                }
+
+                var point_A = edge.start;
+                var point_B = edge.end;
+
+                // On récupère le points qui n'est pas sur l'arête, parmi les sommets du triangle ABC (le point C)
+                var point_C = triangle_ABC.GetOtherPoint(edge);
+
+                // Pareil pour le triangle ABD (le point D)
+                var point_D = triangle_ABD.GetOtherPoint(edge);
+
+                // On récupère le cercle circonscrit du triangle ABC
+                Circle external_circle = triangle_ABC.CircumscribedCircle();
+
+                // Si D est dans le cercle
+                if (external_circle.Contains(point_D)) {
+
+                    // On supprime les triangles de la liste des triangles
+                    int index_ABC = triangles.FindIndex(t => t.isEqual(triangle_ABC));
+                    triangles.RemoveAt(index_ABC);
+                    int index_ABD = triangles.FindIndex(t => t.isEqual(triangle_ABD));
+                    triangles.RemoveAt(index_ABD);
+
+                    // On crée les deux triangles en flipant l'arête
+                    var triangle_ACD = new Triangle(point_A, point_C, point_D);
+                    var triangle_BCD = new Triangle(point_B, point_C, point_D);
+
+                    // On les ajout à la liste de triangle
+                    triangles.Add(triangle_ACD);
+                    triangles.Add(triangle_BCD);
+
+                    // Et on ajoute les côtés des triangle ABC et ABD, à la pile d'arêtes
+                    var other_edge1 = triangle_ABC.GetOtherEdge(edge);
+                    var other_edge2 = triangle_ABD.GetOtherEdge(edge);
+
+                    edge_stack = edge_stack.Concat(other_edge1);
+                    edge_stack = edge_stack.Concat(other_edge2);
+                }
             }
         }
     }

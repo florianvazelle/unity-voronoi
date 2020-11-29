@@ -113,7 +113,7 @@ public class ConvexHull3D {
 		}
 
 		/* Construct indices array */
-		var vCenter = Interface3D.findCenter(P);
+		var vCenter = InterfaceUtils.FindCenter(P);
 		for (int j = 0; j < faces.Count; j++) {
 			face face = faces[j];
 
@@ -127,7 +127,7 @@ public class ConvexHull3D {
 
 			// verify if face is in clockwise
 			var surfaceNormal = Vector3.Cross(input[1] - input[0], input[2] - input[0]).normalized;
-			Vector3 center = Interface3D.findCenter(input);
+			Vector3 center = InterfaceUtils.FindCenter(input);
 			if (Vector3.Dot(surfaceNormal, center - vCenter) < 0) {
 				idx.Reverse();
 			}
