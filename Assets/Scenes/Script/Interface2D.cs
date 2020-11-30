@@ -12,10 +12,31 @@ public class Interface2D : MonoBehaviour
     private List<Triangle> tris;
     private List<Vector3> pointsCloud3D;
     private int verticesAmount = 10;
-
+    private bool mouseOverGUI = false;
+    private Camera cam;
+    private Event Event;
     void Start() {
         tris = new List<Triangle>();
         pointsCloud3D = new List<Vector3>();
+        cam = Camera.main;
+        cam.orthographic = true;
+        Event = new Event();
+    }
+
+    void Update() {
+        if (!mouseOverGUI)
+        {
+            if (Input.GetMouseButtonDown(1)) {
+                Vector3 worldPosition = new Vector3();
+                Vector2 mousePosition = new Vector2();
+
+                mousePosition.x = Event.current.mousePosition.x;
+                mousePosition.y = cam.pixelHeight - Event.current.mousePosition.y;
+                worldPosition = cam.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 10));
+                pointsCloud3D.Add(worldPosition);
+                Instantiate(pointPrefab, worldPosition, Quaternion.identity);
+            }
+        }
     }
 
     private void OnGUI() {
@@ -29,6 +50,19 @@ public class Interface2D : MonoBehaviour
             ResetScene();
             pointsCloud3D = GenerateRandomVertices(verticesAmount);
             GeneratePoints(pointPrefab, pointsCloud3D);
+        }
+
+        GUILayout.Button("test button");
+        if (Event.current.type == EventType.Repaint &&
+            GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
+        {
+            GUILayout.Label("Mouse over!");
+            mouseOverGUI = true;
+        }
+        else
+        {
+            GUILayout.Label("Mouse somewhere else");
+            mouseOverGUI = false;
         }
 
         if (ValidCloudPoint()) {
@@ -64,7 +98,7 @@ public class Interface2D : MonoBehaviour
         return pointsCloud3D.Count > 0;
     }
 
-    static public void ResetScene() {
+    public void ResetScene() {
         GameObject tmp = GameObject.Find("Point(Clone)");
         while(tmp != null) {
             DestroyImmediate(tmp);
@@ -74,7 +108,7 @@ public class Interface2D : MonoBehaviour
         ResetMesh();
     }
 
-    static public void ResetMesh() {
+    public void ResetMesh() {
         GameObject thisBuilding = GameObject.Find("Building");
         if (thisBuilding != null) {
             DestroyImmediate(thisBuilding);
