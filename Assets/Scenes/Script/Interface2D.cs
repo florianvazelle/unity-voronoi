@@ -37,6 +37,7 @@ public class Interface2D : MonoBehaviour
             if (GUILayout.Button("Direct Delaunay")) {
                 pointsCloud3D = UpdateVertices();
                 ResetMesh();
+                tris.Clear();
 
                 // Convertion
                 List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
@@ -49,6 +50,7 @@ public class Interface2D : MonoBehaviour
             if (GUILayout.Button("Direct Regular")) {
                 pointsCloud3D = UpdateVertices();
                 ResetMesh();
+                tris.Clear();
 
                 // Convertion
                 List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
@@ -56,6 +58,13 @@ public class Interface2D : MonoBehaviour
                 Delaunay2D.Regular(pointsCloud2D, ref tris);
 
                 GenerateMeshIndirect(tris);
+            }
+
+            if (tris.Count > 0) {
+                if (GUILayout.Button("Flip")) {
+                    Delaunay2D.FlipToDelaunay(ref tris);
+                    GenerateMeshIndirect(tris);
+                }
             }
         }
     }
@@ -79,7 +88,6 @@ public class Interface2D : MonoBehaviour
         if (thisBuilding != null) {
             DestroyImmediate(thisBuilding);
         }
-        tris.Clear();
     }
 
     static public void GeneratePoints(GameObject prefab, List<Vector3> vertices) {
