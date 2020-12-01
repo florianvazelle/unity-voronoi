@@ -65,6 +65,18 @@ public class Interface2D : MonoBehaviour
                     Delaunay2D.FlipToDelaunay(ref tris);
                     GenerateMeshIndirect(tris);
                 }
+
+                if (GUILayout.Button("Direct Voronoi2D"))
+                {
+
+                    List<Edge> ListEdg = new List<Edge>();
+                    ListEdg = Delaunay2D.Voronoi2D(ref tris);
+
+                    for (int i = 0; i < ListEdg.Count; i++)
+                    {
+                        // DrawLine(ListEdg[i].start, ListEdg[i].end);
+                    }
+                }
             }
         }
     }
