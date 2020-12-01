@@ -7,15 +7,21 @@ using RapidGUI;
 public class Interface2D : MonoBehaviour
 {
     public GameObject pointPrefab;
+    public Color lineColor;
 
     private Rect windowRect = new Rect(0, 0, 250, 250);
     private List<Triangle> tris;
     private List<Vector3> pointsCloud3D;
     private int verticesAmount = 10;
+    private Material lineMat;
+    private List<Edge> edges;
 
     void Start() {
         tris = new List<Triangle>();
         pointsCloud3D = new List<Vector3>();
+        lineMat = new Material(Shader.Find("Unlit/Color"));
+        lineMat.color = lineColor;
+        edges = new List<Edge>();
     }
 
     private void OnGUI() {
@@ -27,6 +33,7 @@ public class Interface2D : MonoBehaviour
 
         if (GUILayout.Button("Generate 2D Points Cloud")) {
             ResetScene();
+            ResetData();
             pointsCloud3D = GenerateRandomVertices(verticesAmount);
             GeneratePoints(pointPrefab, pointsCloud3D);
         }
@@ -37,7 +44,7 @@ public class Interface2D : MonoBehaviour
             if (GUILayout.Button("Direct Delaunay")) {
                 pointsCloud3D = UpdateVertices();
                 ResetMesh();
-                tris.Clear();
+                ResetData();
 
                 // Convertion
                 List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
@@ -50,7 +57,7 @@ public class Interface2D : MonoBehaviour
             if (GUILayout.Button("Direct Regular")) {
                 pointsCloud3D = UpdateVertices();
                 ResetMesh();
-                tris.Clear();
+                ResetData();
 
                 // Convertion
                 List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
@@ -66,23 +73,31 @@ public class Interface2D : MonoBehaviour
                     GenerateMeshIndirect(tris);
                 }
 
-                if (GUILayout.Button("Direct Voronoi2D"))
-                {
-
-                    List<Edge> ListEdg = new List<Edge>();
-                    ListEdg = Delaunay2D.Voronoi2D(ref tris);
-
-                    for (int i = 0; i < ListEdg.Count; i++)
-                    {
-                        // DrawLine(ListEdg[i].start, ListEdg[i].end);
-                    }
+                if (GUILayout.Button("Direct Voronoi2D")) {
+                    edges = Delaunay2D.Voronoi2D(ref tris);
                 }
             }
         }
     }
 
+    void OnPostRender() {
+        foreach (var edge in edges) {
+            GL.Begin(GL.LINES);
+            lineMat.SetPass(0);
+            GL.Color(new Color(lineMat.color.r, lineMat.color.g, lineMat.color.b, lineMat.color.a));
+            GL.Vertex3(edge.start.x, edge.start.y, -1f);
+            GL.Vertex3(edge.end.x, edge.end.y, -1f);
+            GL.End();
+        }
+    }
+
     bool ValidCloudPoint() {
         return pointsCloud3D.Count > 0;
+    }
+
+    public void ResetData() {
+        tris.Clear();
+        edges.Clear();
     }
 
     static public void ResetScene() {
