@@ -7,6 +7,7 @@ using RapidGUI;
 public class Interface2D : MonoBehaviour
 {
     public GameObject pointPrefab;
+    public GameObject centerPrefab;
     public Color lineColor;
 
     private Rect windowRect = new Rect(0, 0, 250, 250);
@@ -73,7 +74,13 @@ public class Interface2D : MonoBehaviour
                     GenerateMeshIndirect(tris);
                 }
 
+                // DrawLine(ListEdg[i].start, ListEdg[i].end);
                 if (GUILayout.Button("Direct Voronoi2D")) {
+
+                    List<Vector2> AllCenterPoints;
+                    AllCenterPoints = Delaunay2D.AllCenterPoint(ref tris);
+                    GenerateCenter(centerPrefab, AllCenterPoints);
+
                     edges = Delaunay2D.Voronoi2D(ref tris);
                 }
             }
@@ -121,6 +128,14 @@ public class Interface2D : MonoBehaviour
 		for (int i = 0; i < vertices.Count; i++) {
 			Instantiate(prefab, vertices[i], Quaternion.identity);
 		}
+    }
+
+    static public void GenerateCenter(GameObject prefab, List<Vector2> vertices)
+    {
+        for (int i = 0; i < vertices.Count; i++)
+        {
+            Instantiate(prefab, vertices[i], Quaternion.identity);
+        }
     }
 
     static public List<Vector3> UpdateVertices() {

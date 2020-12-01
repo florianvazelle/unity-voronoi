@@ -299,12 +299,9 @@ public class Delaunay2D {
     public static List<Edge> Voronoi2D(ref List<Triangle> triangles)
     {
 
-        //recuperer tous les cercle circonscrit 
-        //recuperer tous les centre de chaque cercle 
+        //recuperer tous les point du cercle circonscrit 
         //faire la mediane des trois droit puis les relier avec le voisinage
         //rajouter les condition si le centre des cercle est en dehor ou a l interieur du triangle selon triangle egu ou optu
-
-        // Find all the triangles where the point is in their circumscribed circle
 
         List<Edge> ListEdg = new List<Edge>();
         List<Vector2> All_Center = triangles.Select(t => t.CircumscribedCircle().center).ToList();
@@ -326,5 +323,11 @@ public class Delaunay2D {
         }
 
         return ListEdg;
+    }
+
+    public static List<Vector2> AllCenterPoint(ref List<Triangle> triangles)
+    {
+        List<Vector2> All_Center = triangles.Select(t => t.CircumscribedCircle().center).ToList();
+        return All_Center;
     }
 }
