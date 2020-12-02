@@ -302,6 +302,7 @@ public class Delaunay2D {
         //recuperer tous les point du cercle circonscrit 
         //faire la mediane des trois droit puis les relier avec le voisinage
         //rajouter les condition si le centre des cercle est en dehor ou a l interieur du triangle selon triangle egu ou optu
+        //rajouter les segment qui passe par la mediatrice (qui fait un angle droit)
 
         List<Edge> ListEdg = new List<Edge>();
         List<Vector2> All_Center = triangles.Select(t => t.CircumscribedCircle().center).ToList();

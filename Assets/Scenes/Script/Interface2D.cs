@@ -82,6 +82,10 @@ public class Interface2D : MonoBehaviour
                     GenerateCenter(centerPrefab, AllCenterPoints);
 
                     edges = Delaunay2D.Voronoi2D(ref tris);
+                    //for (int i = 0; i < AllCenterPoints.Count; i++)
+                    //{
+                    //    Debug.DrawLine(edges[i].start, edges[i].end, Color.green, 100f);
+                    //}
                 }
             }
         }
@@ -92,8 +96,8 @@ public class Interface2D : MonoBehaviour
             GL.Begin(GL.LINES);
             lineMat.SetPass(0);
             GL.Color(new Color(lineMat.color.r, lineMat.color.g, lineMat.color.b, lineMat.color.a));
-            GL.Vertex3(edge.start.x, edge.start.y, -1f);
-            GL.Vertex3(edge.end.x, edge.end.y, -1f);
+            GL.Vertex3(edge.start.x, edge.start.y, 0f);
+            GL.Vertex3(edge.end.x, edge.end.y, 0f);
             GL.End();
         }
     }

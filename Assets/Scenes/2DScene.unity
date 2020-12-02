@@ -258,7 +258,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pointPrefab: {fileID: 1870833446234820199, guid: da3ab9244fd5e852596c324c6c94877f,
     type: 3}
-  lineMat: {fileID: 2100000, guid: 751c742d49e7f297ca355681a0459da2, type: 2}
+  centerPrefab: {fileID: 1870833446234820199, guid: 71ac7763a1328974fa6241aa83dd9ad5,
+    type: 3}
+  lineColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &1323588648
 GameObject:
   m_ObjectHideFlags: 0
@@ -357,4 +359,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pointPrefab: {fileID: 1870833446234820199, guid: da3ab9244fd5e852596c324c6c94877f,
     type: 3}
-  lineMat: {fileID: 0}
+  centerPrefab: {fileID: 1870833446234820199, guid: 71ac7763a1328974fa6241aa83dd9ad5,
+    type: 3}
+  lineColor: {r: 0, g: 0, b: 0, a: 0}
