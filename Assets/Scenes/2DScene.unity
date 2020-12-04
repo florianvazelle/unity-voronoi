@@ -222,7 +222,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1187648022}
-  - component: {fileID: 1187648023}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -244,23 +243,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1187648023
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1187648021}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3151bf36ab560f57aa437e6faaa6f8a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pointPrefab: {fileID: 1870833446234820199, guid: da3ab9244fd5e852596c324c6c94877f,
-    type: 3}
-  centerPrefab: {fileID: 1870833446234820199, guid: 71ac7763a1328974fa6241aa83dd9ad5,
-    type: 3}
-  lineColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &1323588648
 GameObject:
   m_ObjectHideFlags: 0
@@ -273,6 +255,7 @@ GameObject:
   - component: {fileID: 1323588650}
   - component: {fileID: 1323588649}
   - component: {fileID: 1323588652}
+  - component: {fileID: 1323588653}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -357,8 +340,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3151bf36ab560f57aa437e6faaa6f8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pointPrefab: {fileID: 1870833446234820199, guid: da3ab9244fd5e852596c324c6c94877f,
+  pointPrefab: {fileID: 5656486778373568127, guid: 665eda4e6cb49899b84c5513d2bf3e13,
     type: 3}
-  centerPrefab: {fileID: 1870833446234820199, guid: 71ac7763a1328974fa6241aa83dd9ad5,
+  centerPrefab: {fileID: 1870833446234820199, guid: b57af3d5edb17854498463a13c798044,
     type: 3}
   lineColor: {r: 0, g: 0, b: 0, a: 0}
+--- !u!114 &1323588653
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1323588648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb8b5375a12f1b357b8c19ab1a21f8c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

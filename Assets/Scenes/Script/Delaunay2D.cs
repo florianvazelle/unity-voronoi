@@ -139,7 +139,7 @@ public class Delaunay2D {
     }
 
     public static void Regular(List<Vector2> contour, ref List<Triangle> result) {
-        Interface2D.SortInClockWise(ref contour);
+        InterfaceUtils.SortInClockWise(ref contour);
         /* allocate and initialize list of Vertices in polygon */
 
         int n = contour.Count;

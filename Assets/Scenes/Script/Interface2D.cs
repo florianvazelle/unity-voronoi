@@ -3,23 +3,25 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using RapidGUI;
+using static InterfaceUtils;
 
 public class Interface2D : MonoBehaviour
 {
     [Flags]
-    private enum FLAGS { NOOP = 1, DELAUNAY = 2, REGULAR = 4, FLIP = 8, VORONOI = 16 };
+    private enum FLAGS { NOOP = 1, JARVIS = 2, GRAHAM = 4, DELAUNAY = 8, REGULAR = 16, FLIP = 32, VORONOI = 64 };
 
     public GameObject pointPrefab;
     public GameObject centerPrefab;
     public Color lineColor;
 
-    private Rect windowRect = new Rect(0, 0, 250, 250);
-    private List<Triangle> tris;
-    private List<Vector3> pointsCloud3D;
-    private int verticesAmount = 10;
-    private Material lineMat;
-    private List<Edge> edges;
-    private FLAGS currentState;
+    private Rect windowRect = new Rect(0, 0, 250, 500);     // Rect window for ImGUI
+    private int verticesAmount = 10;                        // Parameter of ImGUI to select the vertex amount
+    private List<Vector3> pointsCloud3D;                    // List of points in the scene
+    private List<Triangle> tris;                            // Temporaly list with result of triangulation
+    private Material lineMat;                               // Voronoi Line material
+    private List<Edge> edges;                               // Temporaly list with result of Voronoi
+    private FLAGS currentState, oldState;                   // Current state, on which button you click to execute method in update
+    private long elapsedMs = -1;                            // To calculate how many time the method execute 
 
     void Start() {
         tris = new List<Triangle>();
@@ -27,13 +29,60 @@ public class Interface2D : MonoBehaviour
         lineMat = new Material(Shader.Find("Unlit/Color"));
         lineMat.color = lineColor;
         edges = new List<Edge>();
-        currentState = FLAGS.NOOP;
+        currentState = oldState = FLAGS.NOOP;
     }
 
     void Update() {
+
         List<Vector3> newPointsCloud3D = UpdateVertices();
-        if (newPointsCloud3D != pointsCloud3D) {
+        
+        // Sort array to compare them
+        newPointsCloud3D.Sort((x, y) => {
+            return (x.x == y.x) ? (x.y == y.y) ? (x.z == y.z) ? 0 : x.z.CompareTo(y.z) : x.y.CompareTo(y.y) : x.x.CompareTo(y.x);
+        });
+        pointsCloud3D.Sort((x, y) => {
+            return (x.x == y.x) ? (x.y == y.y) ? (x.z == y.z) ? 0 : x.z.CompareTo(y.z) : x.y.CompareTo(y.y) : x.x.CompareTo(y.x);
+        });
+        bool equals = Enumerable.SequenceEqual(newPointsCloud3D, pointsCloud3D);
+
+            Debug.Log(currentState);
+        // Update only if state are change and if a point is drag
+        if (!equals || oldState != currentState) {
+            oldState = currentState;
             pointsCloud3D = newPointsCloud3D;
+            
+            // if state is no operation, we skip
+            if (currentState == FLAGS.NOOP) return;
+
+            // ***** Convex Hull *****
+
+            if (currentState == FLAGS.JARVIS) {
+                ResetMesh();
+
+                List<Vector2> mesh2D = new List<Vector2>();
+                List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
+                
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                ConvexHull.JarvisMarch(pointsCloud2D, ref mesh2D);
+                watch.Stop();
+                elapsedMs = watch.ElapsedMilliseconds;
+
+                GenerateConvexHullMeshIndirect(mesh2D);
+            } else if (currentState == FLAGS.GRAHAM) {
+                ResetMesh();
+
+                List<Vector2> mesh2D = new List<Vector2>();
+                List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
+
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                ConvexHull.GrahamScan(pointsCloud2D, ref mesh2D);
+                watch.Stop();
+                elapsedMs = watch.ElapsedMilliseconds;
+
+                GenerateConvexHullMeshIndirect(mesh2D);
+            }
+
+            // ***** Triangulation & Voronoi *****
             
             // Execute when you click on the delaunay button or you want make voronoi with delaunay
             if (currentState == FLAGS.DELAUNAY || currentState == (FLAGS.VORONOI | FLAGS.DELAUNAY)) {
@@ -101,6 +150,7 @@ public class Interface2D : MonoBehaviour
 
         if (GUILayout.Button("Generate 2D Points Cloud")) {
             currentState = FLAGS.NOOP;
+            elapsedMs = -1;
             ResetScene();
             ResetData();
             pointsCloud3D = GenerateRandomVertices(verticesAmount);
@@ -108,6 +158,15 @@ public class Interface2D : MonoBehaviour
         }
 
         if (ValidCloudPoint()) {
+            GUILayout.Label("Convex Hull");
+
+            if (GUILayout.Button("Jarvis March")) currentState = FLAGS.JARVIS;
+            if (GUILayout.Button("GrahamScan")) currentState = FLAGS.GRAHAM;
+
+            if (elapsedMs != -1) {
+                GUILayout.Label("In " + elapsedMs + " milliseconds");
+            }
+            
             GUILayout.Label("Triangulation");
 
             if (GUILayout.Button("Direct Delaunay")) currentState = FLAGS.DELAUNAY;
@@ -144,104 +203,6 @@ public class Interface2D : MonoBehaviour
         edges.Clear();
     }
 
-    static public void ResetScene() {
-        ResetPoint();
-        ResetCenter();
-        ResetMesh();
-    }
-
-    static public void ResetPoint() {
-        GameObject tmp = GameObject.Find("Point(Clone)");
-        while(tmp != null) {
-            DestroyImmediate(tmp);
-            tmp = GameObject.Find("Point(Clone)");
-        }
-    }
-
-    static public void ResetCenter() {
-        GameObject tmp = GameObject.Find("Center(Clone)");
-        while(tmp != null) {
-            DestroyImmediate(tmp);
-            tmp = GameObject.Find("Center(Clone)");
-        }
-    }
-
-    static public void ResetMesh() {
-        GameObject thisBuilding = GameObject.Find("Building");
-        if (thisBuilding != null) {
-            DestroyImmediate(thisBuilding);
-        }
-    }
-
-    static public void GeneratePoints(GameObject prefab, List<Vector3> vertices) {
-		for (int i = 0; i < vertices.Count; i++) {
-			Instantiate(prefab, vertices[i], Quaternion.identity);
-		}
-    }
-
-    static public void GenerateCenter(GameObject prefab, List<Vector2> vertices)
-    {
-        for (int i = 0; i < vertices.Count; i++)
-        {
-            Instantiate(prefab, vertices[i], Quaternion.identity);
-        }
-    }
-
-    static public List<Vector3> UpdateVertices() {
-        List<Vector3> newPoints3D = new List<Vector3>();
-        GameObject[] allGOs = FindObjectsOfType<GameObject>();
-        foreach(var go in allGOs) {
-            if (go.name == "Point(Clone)") {
-                newPoints3D.Add(go.transform.position);
-            }
-        }
-        return newPoints3D;
-    }
-
-    static List<Vector3> GenerateRandomVertices(int verticesAmount) {
-        Vector3 uperLeftCorner = Camera.main.ScreenToWorldPoint(new Vector3(100, 100, 10)); // -10.0f if bugs
-        Vector3 lowerRightCorner = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width - 100, Screen.height - 100, 10)); // -10.0f if bugs
-        
-        List<Vector3> points3D = new List<Vector3>();
-        for (int i = 0; i < verticesAmount; i++) {
-            points3D.Add(new Vector3(
-                UnityEngine.Random.Range(uperLeftCorner.x, lowerRightCorner.x),
-                UnityEngine.Random.Range(uperLeftCorner.y, lowerRightCorner.y),
-                0
-            ));
-        }
-
-        return points3D;
-    }
-
-    static public void SortInClockWise(ref List<Vector2> points2D) {
-        ConvexHull.SortByAngle(ref points2D, ConvexHull.GetBarycenter(points2D));
-        points2D.Reverse();
-    }
-        
-
-    static public void SortInClockWise(ref List<Vector3> points3D) {
-        List<Vector2> points2D = ConvertListVector3ToVector2(points3D);
-        SortInClockWise(ref points2D);
-        points3D = ConvertListVector2ToVector3(points2D); 
-    }
-
-    static List<Vector3> ConvertListVector2ToVector3(List<Vector2> points2D) {
-        List<Vector3> points3D = new List<Vector3>();
-        for (int i = 0; i < points2D.Count; i++) {
-            points3D.Add(points2D[i]);
-        }
-        return points3D;
-    }
-
-    static List<Vector2> ConvertListVector3ToVector2(List<Vector3> points3D) {
-        List<Vector2> points2D = new List<Vector2>();
-        for (int i = 0; i < points3D.Count; i++) {
-            points2D.Add(points3D[i]);
-        }
-        return points2D;
-    }
-
     static public void GenerateMeshIndirect(List<Triangle> triangles) {
         triangles.ForEach(tri => SortInClockWise(ref tri.vertices));
 
@@ -258,6 +219,31 @@ public class Interface2D : MonoBehaviour
         GenerateMesh(ConvertListVector2ToVector3(points2D), indices);
     }
 
+    static public void GenerateConvexHullMeshIndirect(List<Vector2> points2D) {
+        // Sort in clockwise
+        SortInClockWise(ref points2D);
+
+        List<int> indices = new List<int>();
+        Vector2 center = ConvexHull.GetBarycenter(points2D);
+        points2D.Add(points2D[0]); // to close the mesh
+        points2D.Add(center);
+        int centerIdx = points2D.Count - 1;
+        
+        for(int i = 0; i < centerIdx; i++) {
+            if (i >= 2) {
+                indices.Add(centerIdx);
+                indices.Add(i - 1);
+            }
+            indices.Add(i);
+            if (i == 1) {
+                indices.Add(centerIdx);
+            } 
+        }
+
+        GenerateMesh(ConvertListVector2ToVector3(points2D), indices);
+    }
+
+    // https://forum.unity.com/threads/building-mesh-from-polygon.484305/
     static public void GenerateMesh(List<Vector3> vertices, List<int> indices) {
         GameObject thisBuilding = GameObject.Find("Building");
         if (thisBuilding == null) {
