@@ -296,8 +296,8 @@ public class Delaunay2D {
             }
         }
     }
-    public static List<Edge> Voronoi2D(ref List<Triangle> triangles)
-    {
+
+    public static List<Edge> Voronoi2D(List<Triangle> triangles) {
 
         //recuperer tous les point du cercle circonscrit 
         //faire la mediane des trois droit puis les relier avec le voisinage
@@ -305,7 +305,7 @@ public class Delaunay2D {
         //rajouter les segment qui passe par la mediatrice (qui fait un angle droit)
 
         List<Edge> ListEdg = new List<Edge>();
-        List<Vector2> All_Center = triangles.Select(t => t.CircumscribedCircle().center).ToList();
+        List<Vector2> All_Center = AllCenterPoint(triangles);
         for (int i = 0; i < triangles.Count; i++)
         {
             for (int j = 0; j < 3; j++)
@@ -326,9 +326,7 @@ public class Delaunay2D {
         return ListEdg;
     }
 
-    public static List<Vector2> AllCenterPoint(ref List<Triangle> triangles)
-    {
-        List<Vector2> All_Center = triangles.Select(t => t.CircumscribedCircle().center).ToList();
-        return All_Center;
+    public static List<Vector2> AllCenterPoint(List<Triangle> triangles) {
+        return triangles.Select(t => t.CircumscribedCircle().center).ToList();
     }
 }

@@ -6,6 +6,9 @@ using RapidGUI;
 
 public class Interface2D : MonoBehaviour
 {
+    [Flags]
+    private enum FLAGS { NOOP = 1, DELAUNAY = 2, REGULAR = 4, FLIP = 8, VORONOI = 16 };
+
     public GameObject pointPrefab;
     public GameObject centerPrefab;
     public Color lineColor;
@@ -16,6 +19,7 @@ public class Interface2D : MonoBehaviour
     private int verticesAmount = 10;
     private Material lineMat;
     private List<Edge> edges;
+    private FLAGS currentState;
 
     void Start() {
         tris = new List<Triangle>();
@@ -23,6 +27,69 @@ public class Interface2D : MonoBehaviour
         lineMat = new Material(Shader.Find("Unlit/Color"));
         lineMat.color = lineColor;
         edges = new List<Edge>();
+        currentState = FLAGS.NOOP;
+    }
+
+    void Update() {
+        List<Vector3> newPointsCloud3D = UpdateVertices();
+        if (newPointsCloud3D != pointsCloud3D) {
+            pointsCloud3D = newPointsCloud3D;
+            
+            // Execute when you click on the delaunay button or you want make voronoi with delaunay
+            if (currentState == FLAGS.DELAUNAY || currentState == (FLAGS.VORONOI | FLAGS.DELAUNAY)) {
+                // Clear
+                ResetMesh();
+                ResetData();
+                ResetCenter();
+
+                // Convertion
+                List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
+                
+                // Delaunay
+                Delaunay2D.Delaunay(pointsCloud2D, ref tris);
+
+                // Draw
+                GenerateMeshIndirect(tris);
+            }
+
+            // Execute when you click on the regular button or you want make voronoi with regular
+            if (currentState == FLAGS.REGULAR || currentState == FLAGS.FLIP || currentState == (FLAGS.VORONOI | FLAGS.FLIP)) {
+                // Clear
+                ResetMesh();
+                ResetData();
+                ResetCenter();
+
+                // Convertion
+                List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
+                
+                // Regular
+                Delaunay2D.Regular(pointsCloud2D, ref tris);
+                
+                // Draw
+                GenerateMeshIndirect(tris);
+            }
+
+            // Execute when you click on the flip button or you want make voronoi with flip after regular
+            if (currentState == FLAGS.FLIP || currentState == (FLAGS.VORONOI | FLAGS.FLIP)) {
+                // Flip
+                Delaunay2D.FlipToDelaunay(ref tris);
+
+                // Draw
+                GenerateMeshIndirect(tris);
+            }
+            
+            // Execute when you click on the voronoi button 
+            if (currentState >= FLAGS.VORONOI) {
+                // Get all circumscribed circle center
+                List<Vector2> AllCenterPoints = Delaunay2D.AllCenterPoint(tris);
+                // And draw it
+                GenerateCenter(centerPrefab, AllCenterPoints);
+
+                // Voronoi
+                edges = Delaunay2D.Voronoi2D(tris);
+                // Draw new edges in the PostRender method
+            }
+        }
     }
 
     private void OnGUI() {
@@ -33,6 +100,7 @@ public class Interface2D : MonoBehaviour
         verticesAmount = RGUI.Field(verticesAmount, "Number of Points");
 
         if (GUILayout.Button("Generate 2D Points Cloud")) {
+            currentState = FLAGS.NOOP;
             ResetScene();
             ResetData();
             pointsCloud3D = GenerateRandomVertices(verticesAmount);
@@ -42,48 +110,16 @@ public class Interface2D : MonoBehaviour
         if (ValidCloudPoint()) {
             GUILayout.Label("Triangulation");
 
-            if (GUILayout.Button("Direct Delaunay")) {
-                pointsCloud3D = UpdateVertices();
-                ResetMesh();
-                ResetData();
-                ResetCenter();
-
-                // Convertion
-                List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
-                
-                Delaunay2D.Delaunay(pointsCloud2D, ref tris);
-
-                GenerateMeshIndirect(tris);
-            }
-
-            if (GUILayout.Button("Direct Regular")) {
-                pointsCloud3D = UpdateVertices();
-                ResetMesh();
-                ResetData();
-                ResetCenter();
-
-                // Convertion
-                List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
-                
-                Delaunay2D.Regular(pointsCloud2D, ref tris);
-
-                GenerateMeshIndirect(tris);
-            }
+            if (GUILayout.Button("Direct Delaunay")) currentState = FLAGS.DELAUNAY;
+            if (GUILayout.Button("Direct Regular")) currentState = FLAGS.REGULAR;
 
             if (tris.Count > 0) {
-                if (GUILayout.Button("Flip")) {
-                    Delaunay2D.FlipToDelaunay(ref tris);
-                    GenerateMeshIndirect(tris);
+                if (currentState == FLAGS.REGULAR) {
+                    if (GUILayout.Button("Flip")) currentState = FLAGS.FLIP;
                 }
 
-                if (GUILayout.Button("Direct Voronoi2D")) {
-
-                    List<Vector2> AllCenterPoints;
-                    AllCenterPoints = Delaunay2D.AllCenterPoint(ref tris);
-                    GenerateCenter(centerPrefab, AllCenterPoints);
-
-                    edges = Delaunay2D.Voronoi2D(ref tris);
-                }
+                // Add current flag with voronoi flag because voronoi, need to make with a triangulation method
+                if (GUILayout.Button("Direct Voronoi2D")) currentState |= FLAGS.VORONOI;
             }
         }
     }
