@@ -46,6 +46,7 @@ public class Interface2D : MonoBehaviour
                 pointsCloud3D = UpdateVertices();
                 ResetMesh();
                 ResetData();
+                ResetCenter();
 
                 // Convertion
                 List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
@@ -59,6 +60,7 @@ public class Interface2D : MonoBehaviour
                 pointsCloud3D = UpdateVertices();
                 ResetMesh();
                 ResetData();
+                ResetCenter();
 
                 // Convertion
                 List<Vector2> pointsCloud2D = ConvertListVector3ToVector2(pointsCloud3D);
@@ -74,7 +76,6 @@ public class Interface2D : MonoBehaviour
                     GenerateMeshIndirect(tris);
                 }
 
-                // DrawLine(ListEdg[i].start, ListEdg[i].end);
                 if (GUILayout.Button("Direct Voronoi2D")) {
 
                     List<Vector2> AllCenterPoints;
@@ -82,10 +83,6 @@ public class Interface2D : MonoBehaviour
                     GenerateCenter(centerPrefab, AllCenterPoints);
 
                     edges = Delaunay2D.Voronoi2D(ref tris);
-                    //for (int i = 0; i < AllCenterPoints.Count; i++)
-                    //{
-                    //    Debug.DrawLine(edges[i].start, edges[i].end, Color.green, 100f);
-                    //}
                 }
             }
         }
@@ -112,13 +109,25 @@ public class Interface2D : MonoBehaviour
     }
 
     static public void ResetScene() {
+        ResetPoint();
+        ResetCenter();
+        ResetMesh();
+    }
+
+    static public void ResetPoint() {
         GameObject tmp = GameObject.Find("Point(Clone)");
         while(tmp != null) {
             DestroyImmediate(tmp);
             tmp = GameObject.Find("Point(Clone)");
         }
+    }
 
-        ResetMesh();
+    static public void ResetCenter() {
+        GameObject tmp = GameObject.Find("Center(Clone)");
+        while(tmp != null) {
+            DestroyImmediate(tmp);
+            tmp = GameObject.Find("Center(Clone)");
+        }
     }
 
     static public void ResetMesh() {
