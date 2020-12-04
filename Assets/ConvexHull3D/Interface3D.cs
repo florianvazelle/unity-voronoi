@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 using RapidGUI;
 
 public class Interface3D : MonoBehaviour {
@@ -11,9 +12,40 @@ public class Interface3D : MonoBehaviour {
     private List<Vector3> pointsCloud3D;
     private int verticesAmount = 10;
 
+    private int currentState = 0, oldCurrentState = 0; 
+
 	void Start() {
 		pointsCloud3D = new List<Vector3>();
 	}
+
+    void Update() {
+        List<Vector3> newPointsCloud3D = InterfaceUtils.UpdateVertices();
+        
+        // Sort array to compare them
+        newPointsCloud3D.Sort((x, y) => {
+            return (x.x == y.x) ? (x.y == y.y) ? (x.z == y.z) ? 0 : x.z.CompareTo(y.z) : x.y.CompareTo(y.y) : x.x.CompareTo(y.x);
+        });
+        pointsCloud3D.Sort((x, y) => {
+            return (x.x == y.x) ? (x.y == y.y) ? (x.z == y.z) ? 0 : x.z.CompareTo(y.z) : x.y.CompareTo(y.y) : x.x.CompareTo(y.x);
+        });
+        bool equals = Enumerable.SequenceEqual(newPointsCloud3D, pointsCloud3D);
+
+
+        if (!equals || currentState != oldCurrentState) {
+            oldCurrentState = currentState;
+            pointsCloud3D = newPointsCloud3D;
+
+            if (currentState == 1) {
+                InterfaceUtils.ResetMesh();
+
+                List<Vector3> mesh3D = new List<Vector3>();
+                List<int> tris = new List<int>();
+
+                ConvexHull3D.IncrementalConvexHull(pointsCloud3D, ref mesh3D, ref tris);
+                GenerateMesh(mesh3D, tris);
+            }
+        }
+    }
 
 	private void OnGUI() {
         windowRect = GUI.ModalWindow(GetHashCode(), windowRect, DoGUI, "Actions", RGUIStyle.darkWindow);
@@ -23,6 +55,8 @@ public class Interface3D : MonoBehaviour {
         verticesAmount = RGUI.Field(verticesAmount, "Number of Points");
 
         if (GUILayout.Button("Generate 3D Points Cloud")) {
+            currentState = 0;
+
             InterfaceUtils.ResetScene();
             pointsCloud3D = GenerateRandomVertices(verticesAmount);
             InterfaceUtils.GeneratePoints(pointPrefab, pointsCloud3D);
@@ -30,15 +64,8 @@ public class Interface3D : MonoBehaviour {
 
         if (pointsCloud3D.Count > 0) {
             GUILayout.Label("Convex Hull 3D");
-            List<Vector3> mesh3D = new List<Vector3>();
 
-            if (GUILayout.Button("Incremental Convex Hull")) {
-                pointsCloud3D = InterfaceUtils.UpdateVertices();
-                InterfaceUtils.ResetMesh();
-                List<int> tris = new List<int>();
-                ConvexHull3D.IncrementalConvexHull(pointsCloud3D, ref mesh3D, ref tris);
-                GenerateMesh(mesh3D, tris);
-            }
+            if (GUILayout.Button("Incremental Convex Hull")) currentState = 1;
         }
     }
 

@@ -150,7 +150,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6891d005ea3d2c8298bc552735d6e597, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pointPrefab: {fileID: 3012297553971621862, guid: cc225b9df34cb2c9db281544612382a3,
+  pointPrefab: {fileID: 5656486778373568127, guid: 665eda4e6cb49899b84c5513d2bf3e13,
     type: 3}
 --- !u!4 &1152529569
 Transform:

@@ -45,7 +45,6 @@ public class Interface2D : MonoBehaviour
         });
         bool equals = Enumerable.SequenceEqual(newPointsCloud3D, pointsCloud3D);
 
-            Debug.Log(currentState);
         // Update only if state are change and if a point is drag
         if (!equals || oldState != currentState) {
             oldState = currentState;
