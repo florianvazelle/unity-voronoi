@@ -22,6 +22,8 @@ public class Interface2D : MonoBehaviour
     private List<Edge> edges;                               // Temporaly list with result of Voronoi
     private FLAGS currentState, oldState;                   // Current state, on which button you click to execute method in update
     private long elapsedMs = -1;                            // To calculate how many time the method execute 
+    private Camera cam;
+    private Event Event;
 
     void Start() {
         tris = new List<Triangle>();
@@ -30,12 +32,26 @@ public class Interface2D : MonoBehaviour
         lineMat.color = lineColor;
         edges = new List<Edge>();
         currentState = oldState = FLAGS.NOOP;
+        cam = Camera.main;
+        Event = new Event();
     }
 
     void Update() {
 
         List<Vector3> newPointsCloud3D = UpdateVertices();
         
+        if (Input.GetMouseButtonDown(1)) {
+            Debug.Log("create Point");
+            Vector3 worldPosition = new Vector3();
+            Vector2 mousePosition = new Vector2();
+
+            mousePosition.x = Event.mousePosition.x;
+            mousePosition.y = cam.pixelHeight - Event.mousePosition.y;
+            worldPosition = cam.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 10));
+            pointsCloud3D.Add(worldPosition);
+            Instantiate(pointPrefab, worldPosition, Quaternion.identity);
+        }
+
         // Sort array to compare them
         newPointsCloud3D.Sort((x, y) => {
             return (x.x == y.x) ? (x.y == y.y) ? (x.z == y.z) ? 0 : x.z.CompareTo(y.z) : x.y.CompareTo(y.y) : x.x.CompareTo(y.x);
@@ -141,6 +157,7 @@ public class Interface2D : MonoBehaviour
     }
 
     private void OnGUI() {
+        Event = Event.current;
         windowRect = GUI.ModalWindow(GetHashCode(), windowRect, DoGUI, "Actions", RGUIStyle.darkWindow);
     }
 
