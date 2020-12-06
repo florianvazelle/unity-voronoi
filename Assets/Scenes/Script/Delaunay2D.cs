@@ -311,14 +311,38 @@ public class Delaunay2D {
             for (int j = 0; j < 3; j++)
             {
                 var edge = triangles[i].edges[j];
+                bool isFind = false;
 
-                for (int k = i + 1; k < triangles.Count; k++)
-                {
-                    if (triangles[k].hasEdge(edge))
-                    {
-                        ListEdg.Add(new Edge(All_Center[i], All_Center[k]));
+                for (int k = 0; k < triangles.Count; k++) {
+                    if (k == i) continue;
+
+                    if (triangles[k].hasEdge(edge)) {
+                        isFind = true;
+                        if (k >= i + 1) {
+                            ListEdg.Add(new Edge(All_Center[i], All_Center[k]));
+                        }
                         break;
                     }
+                }
+
+                if (!isFind) {
+                    // On calcule la normal du edge courant
+                    Vector2 AB = edge.end - edge.start;
+                    var point_c = triangles[i].GetOtherPoint(edge);
+                    Vector2 AC = point_c - edge.start;
+
+                    Vector2 N = (new Vector2(AB.y, -AB.x)).normalized;
+
+                    // Petit test pour voir si la normal est dans le bon sens
+                    float D = Vector2.Dot(N, AC);
+
+                    if (D < 0) {
+                        // Sinon on l'inverse
+                        N = -N;
+                    }
+
+                    float length = 100;
+                    ListEdg.Add(new Edge(All_Center[i], All_Center[i] - (N * length)));
                 }
             }
         }
