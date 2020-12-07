@@ -17,4 +17,11 @@
 		Vector3 cursorPosition = Camera.main.ScreenToWorldPoint(cursorPoint) + offset;
 		transform.position = cursorPosition;
 	}
+
+	void OnMouseOver(){
+		if (Input.GetKeyDown(KeyCode.Delete))
+		{
+			Destroy(gameObject);
+		}
+	}
  }
